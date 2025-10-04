@@ -1,0 +1,37 @@
+set -e
+
+COMMIT_MSG_FILE=$1
+
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Commit message format: [DBC-xxx] (feat|fix|refactor): description
+COMMIT_MSG_REGEX="^\[DBC-[0-9]+\] (feat|fix|refactor): .+"
+
+if [[ ! "$COMMIT_MSG" =~ $COMMIT_MSG_REGEX ]]; then
+  cat <<EOF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ ERROR: Invalid commit message format.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Commit message must match the format:
+  [DBC-<number>] <type>: <description>
+
+Valid types: feat, fix, refactor
+
+Examples:
+  ✅ [DBC-000] feat: init
+  ✅ [DBC-001] feat: add user authentication
+  ✅ [DBC-123] fix: resolve memory leak in auth service
+  ✅ [DBC-456] refactor: restructure database queries
+
+Your commit message:
+  ❌ $COMMIT_MSG
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EOF
+  exit 1
+fi
+
+echo "✅ Commit message format is valid"
+exit 0
+

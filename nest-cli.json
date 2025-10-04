@@ -1,0 +1,50 @@
+{
+    "$schema": "https://json.schemastore.org/nest-cli",
+    "collection": "@nestjs/schematics",
+    "sourceRoot": "apps/console/src",
+    "compilerOptions": {
+        "deleteOutDir": true,
+        "tsConfigPath": "apps/console/tsconfig.app.json",
+        "builder": "webpack"
+    },
+    "monorepo": true,
+    "root": "apps/console",
+    "projects": {
+        "auth": {
+            "type": "library",
+            "root": "libs/auth",
+            "entryFile": "index",
+            "sourceRoot": "libs/auth/src",
+            "compilerOptions": {
+                "tsConfigPath": "libs/auth/tsconfig.lib.json"
+            }
+        },
+        "console": {
+            "type": "application",
+            "root": "apps/console",
+            "entryFile": "main",
+            "sourceRoot": "apps/console/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/console/tsconfig.app.json"
+            }
+        },
+        "core": {
+            "type": "library",
+            "root": "libs/core",
+            "entryFile": "index",
+            "sourceRoot": "libs/core/src",
+            "compilerOptions": {
+                "tsConfigPath": "libs/core/tsconfig.lib.json"
+            }
+        },
+        "miniapp": {
+            "type": "application",
+            "root": "apps/miniapp",
+            "entryFile": "main",
+            "sourceRoot": "apps/miniapp/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/miniapp/tsconfig.app.json"
+            }
+        }
+    }
+}
