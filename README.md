@@ -132,7 +132,7 @@ console.zip
 
 ### 详细文档
 
-📖 [腾讯云 Web Function 部署指南](TENCENT_WEBFUNCTION_DEPLOYMENT.md)
+📖 查看 [docs/DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) 了解部署详情
 
 ---
 
@@ -231,6 +231,15 @@ curl http://localhost:9000
 - **月费用**: 约 ¥6.66（超出免费额度部分）
 
 非常适合初创项目！💰
+
+---
+
+## 📖 文档
+
+- [配置系统使用指南](docs/CONFIG_USAGE.md) - 配置文件、环境变量、配置验证
+- [VS Code 调试指南](docs/DEBUG_GUIDE.md) - 调试配置、快捷键、调试技巧
+- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 部署流程和注意事项
+- [文档索引](docs/README.md) - 所有文档的目录
 
 ---
 

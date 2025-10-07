@@ -1,0 +1,5 @@
+server:
+    miniapp:
+        port: 3000
+    console:
+        port: 4000

@@ -1,0 +1,112 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "调试 Console 应用",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "start:debug:console"],
+            "console": "integratedTerminal",
+            "restart": true,
+            "env": {
+                // "NODE_ENV": "development"
+                // "SERVER_CONSOLE_PORT": "3434"
+            },
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "调试 Miniapp 应用",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["run", "start:debug:miniapp"],
+            "console": "integratedTerminal",
+            "restart": true,
+            "env": {
+                // "NODE_ENV": "development"
+            },
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "运行当前测试文件",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": [
+                "run",
+                "test",
+                "--",
+                "${fileBasenameNoExtension}",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "E2E: Console 测试",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": [
+                "exec",
+                "jest",
+                "--config",
+                "./apps/console/test/jest-e2e.json",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "E2E: Miniapp 测试",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": [
+                "exec",
+                "jest",
+                "--config",
+                "./apps/miniapp/test/jest-e2e.json",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "E2E: 当前测试文件",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": [
+                "exec",
+                "jest",
+                "--config",
+                "${fileDirname}/jest-e2e.json",
+                "${file}",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+            "cwd": "${workspaceFolder}",
+            "skipFiles": ["<node_internals>/**"]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "调试所有应用",
+            "configurations": ["调试 Console 应用", "调试 Miniapp 应用"],
+            "stopAll": true
+        }
+    ]
+}
