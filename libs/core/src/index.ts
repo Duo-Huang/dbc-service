@@ -7,3 +7,4 @@ export * from './exceptions/business.exception';
 export * from './dto/response/dbc-response-body';
 export * from './filters/all-exceptions.filter';
 export * from './interceptors/response-transform.interceptor';
+export * from './logger/logger.module';

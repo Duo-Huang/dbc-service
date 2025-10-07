@@ -193,6 +193,8 @@ curl http://localhost:9000
 - ✅ **Monorepo 架构** - 多应用统一管理
 - ✅ **共享库** - Auth、Core 等通用模块
 - ✅ **TypeScript** - 类型安全
+- ✅ **Pino 日志系统** - 高性能结构化日志，自动 HTTP 请求记录
+- ✅ **配置管理** - 多环境配置支持，类型安全的配置验证
 - ✅ **ESLint & Prettier** - 代码规范
 - ✅ **Jest** - 单元测试
 - ✅ **Husky** - Git Hooks
@@ -204,7 +206,10 @@ curl http://localhost:9000
 - **框架**: NestJS 11
 - **语言**: TypeScript 5
 - **包管理**: pnpm
+- **日志**: Pino (nestjs-pino)
+- **配置**: config + class-validator
 - **测试**: Jest
+- **构建**: Webpack
 - **部署**: 腾讯云 Web Function
 
 ---
@@ -236,10 +241,23 @@ curl http://localhost:9000
 
 ## 📖 文档
 
-- [配置系统使用指南](docs/CONFIG_USAGE.md) - 配置文件、环境变量、配置验证
-- [VS Code 调试指南](docs/DEBUG_GUIDE.md) - 调试配置、快捷键、调试技巧
-- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 部署流程和注意事项
-- [文档索引](docs/README.md) - 所有文档的目录
+### 核心文档
+
+- **[日志文档](docs/LOGGER.md)** - Pino 日志系统使用指南
+    - 三种使用方式对比
+    - HTTP 请求自动日志
+    - 配置和最佳实践
+
+- **[配置文档](docs/CONFIG.md)** - 配置管理和验证
+    - 多环境配置支持
+    - 环境变量覆盖
+    - 类型安全的配置验证
+
+### 运维文档
+
+- [调试指南](docs/DEBUG_GUIDE.md) - VS Code 调试配置和技巧
+- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 腾讯云部署流程
+- [文档索引](docs/README.md) - 所有文档目录
 
 ---
 

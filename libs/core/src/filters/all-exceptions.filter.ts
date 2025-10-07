@@ -4,12 +4,13 @@ import {
     ArgumentsHost,
     HttpException,
     HttpStatus,
-    Logger,
+    Injectable,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ErrorCode } from '@dbc/core/constants/error-code';
 import { HTTP_ERROR_CODE } from '@dbc/core/constants/http-error-code';
 import { DbcResponseBody } from '@dbc/core/dto/response/dbc-response-body';
+import { PinoLogger } from 'nestjs-pino';
 
 /**
  * 全局异常过滤器
@@ -22,11 +23,14 @@ import { DbcResponseBody } from '@dbc/core/dto/response/dbc-response-body';
  *
  * 使用方式：
  * 在 main.ts 中注册：
- * app.useGlobalFilters(new AllExceptionsFilter());
+ * app.useGlobalFilters(app.get(AllExceptionsFilter));
  */
+@Injectable()
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-    private readonly logger = new Logger(AllExceptionsFilter.name);
+    constructor(private readonly logger: PinoLogger) {
+        this.logger.setContext(AllExceptionsFilter.name);
+    }
 
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();

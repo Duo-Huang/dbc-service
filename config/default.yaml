@@ -3,3 +3,7 @@ server:
         port: 3000
     console:
         port: 4000
+
+logger:
+    level: info
+    prettyPrint: false

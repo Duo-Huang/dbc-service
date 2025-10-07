@@ -1,8 +1,22 @@
 import config from 'config';
 import { plainToClass } from 'class-transformer';
-import { validateSync } from 'class-validator';
+import { IsBoolean, IsString, validateSync, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ValidateNested, IsNumber, Min, Max } from 'class-validator';
+import type { Level } from 'pino';
+
+/**
+ * Pino 日志级别常量
+ * 从 Pino 的 Level 类型定义中提取，避免硬编码
+ */
+const PINO_LOG_LEVELS: readonly Level[] = [
+    'trace',
+    'debug',
+    'info',
+    'warn',
+    'error',
+    'fatal',
+] as const;
 
 /**
  * 服务端口配置类
@@ -12,6 +26,20 @@ export class ServerPortConfig {
     @Min(1024, { message: '端口号必须大于等于 1024' })
     @Max(49151, { message: '端口号必须小于等于 49151' })
     port: number;
+}
+
+/**
+ * 日志配置类
+ */
+export class LoggerConfig {
+    @IsBoolean()
+    prettyPrint: boolean;
+
+    @IsString()
+    @IsIn(PINO_LOG_LEVELS, {
+        message: `level 必须是以下值之一: ${PINO_LOG_LEVELS.join(', ')}`,
+    })
+    level: Level;
 }
 
 /**
@@ -35,6 +63,10 @@ export class DbcConfiguration {
     @ValidateNested()
     @Type(() => ServerConfig)
     server: ServerConfig;
+
+    @ValidateNested()
+    @Type(() => LoggerConfig)
+    logger: LoggerConfig;
 }
 
 /**
