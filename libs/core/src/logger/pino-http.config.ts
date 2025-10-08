@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import type { Params } from 'nestjs-pino';
 import type { IncomingMessage, ServerResponse } from 'http';
+import { formatBeijingTime } from '../utils/date-time.util';
 
 /**
  * 创建 Pino HTTP 配置
@@ -17,19 +18,27 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
             // 开发环境使用 pino-pretty 美化输出
             transport: prettyPrint
                 ? {
-                      target: 'pino-pretty',
-                      options: {
-                          colorize: true,
-                          translateTime: 'SYS:standard',
-                          ignore: 'pid,hostname',
-                          singleLine: false,
-                      },
-                  }
+                    target: 'pino-pretty',
+                    options: {
+                        colorize: true,
+                        translateTime: 'SYS:standard',
+                        ignore: 'pid,hostname',
+                        singleLine: false,
+                    },
+                }
                 : undefined,
-            // 自定义日志上下文
-            customProps: () => ({
-                context: 'HTTP',
-            }),
+            // 生产环境时间戳格式化
+            formatters: {
+                level: (label: string) => {
+                    return { level: label };
+                },
+                bindings: (bindings: Record<string, unknown>) => {
+                    // 移除 pid 和 hostname，减少日志体积
+                    return {};
+                },
+            },
+            // 使用东八区时间格式
+            timestamp: () => `,"time":"${formatBeijingTime()}"`,
             // 自定义请求/响应序列化器
             serializers: {
                 req(req: IncomingMessage & { id?: string | number }) {

@@ -8,26 +8,37 @@
  * 第 3 位和第 4 位表示具体是什么错误：例如：01 为手机号不合法，02 为验证码输入错误，可标记 99 个错误。
  */
 
+export const ERROR_CODE = {
+    // 系统级错误 1xxx (发生在全局范围内或者不确定具体地方)
+    SYSTEM_ERROR_001: {  // fallback
+        code: 1001,
+        message: '未知错误',
+    },
+    SYSTEM_ERROR_002: { // 处理所有未被全局处理器处理的异常
+        code: 1002,
+        message: '请求出错了',
+    },
+    SYSTEM_ERROR_003: {
+        code: 1003,
+        message: '请求参数错误', // 全局参数校验的fallback消息
+    },
+    SYSTEM_ERROR_004: { // 具体异常api内处理, 这里是全局兜底的错误
+        code: 1004,
+        message: '业务异常',
+    },
+
+    // 用户模块错误 21xx
+    USER_ERROR_101: {
+        code: 2101,
+        message: '用户未认证',
+    },
+    USER_ERROR_102: {
+        code: 2102,
+        message: '无权限访问',
+    },
+} as const;
+
 /**
- * 业务异常类
- * 只包含业务错误码和错误消息
- * HTTP 状态码由 Controller 层或全局过滤器根据具体情况设置
+ * 错误码类型
  */
-export class ErrorCode {
-    constructor(
-        public readonly code: number,
-        public readonly message: string,
-    ) {}
-
-    // ==================== 系统级错误 1xxx ====================
-
-    static readonly SYSTEM_ERROR_001 = new ErrorCode(1001, '未知错误');
-    static readonly SYSTEM_ERROR_002 = new ErrorCode(1002, '请求出错了');
-    static readonly SYSTEM_ERROR_003 = new ErrorCode(1003, '请求参数错误');
-    static readonly SYSTEM_ERROR_004 = new ErrorCode(1004, '业务异常');
-
-    // ==================== 用户模块错误 21xx ====================
-
-    static readonly USER_ERROR_101 = new ErrorCode(2101, '用户未认证');
-    static readonly USER_ERROR_102 = new ErrorCode(2102, '无权限访问');
-}
+export type ErrorCodeType = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];

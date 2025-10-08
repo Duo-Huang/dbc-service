@@ -16,14 +16,13 @@ import { DbcResponseBody } from '@dbc/core/dto/response/dbc-response-body';
  * 2. 如果响应不是 DbcResponseBody 实例，自动包装为 DbcResponseBody.success(data)
  * 3. 如果已经是 DbcResponseBody 实例，直接返回
  *
- * 使用方式：
- * 在 main.ts 中注册：
- * app.useGlobalInterceptors(new ResponseTransformInterceptor());
+ * 注册方式：
+ * - 已在 CoreModule 中通过 APP_INTERCEPTOR 自动注册为全局拦截器
+ * - 只需在应用模块中导入 CoreModule 即可自动启用
  */
 @Injectable()
 export class ResponseTransformInterceptor
-    implements NestInterceptor<unknown, DbcResponseBody<unknown>>
-{
+    implements NestInterceptor<unknown, DbcResponseBody<unknown>> {
     intercept(
         context: ExecutionContext,
         next: CallHandler,

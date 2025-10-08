@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ConsoleModule } from './console.module';
 import { ConfigService } from '@nestjs/config';
-import { ResponseTransformInterceptor } from '@dbc/core';
 import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
@@ -12,9 +11,7 @@ async function bootstrap() {
     // 使用 Pino Logger 替换默认 Logger
     app.useLogger(app.get(Logger));
 
-    app.useGlobalInterceptors(new ResponseTransformInterceptor());
-
-    // AllExceptionsFilter 已通过 APP_FILTER 在 module 中注册，无需在此处注册
+    // CoreModule 已自动注册全局拦截器和异常过滤器
 
     const configService = app.get(ConfigService);
 

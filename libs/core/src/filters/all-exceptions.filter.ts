@@ -7,7 +7,7 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ErrorCode } from '@dbc/core/constants/error-code';
+import { ERROR_CODE } from '@dbc/core/constants/error-code';
 import { HTTP_ERROR_CODE } from '@dbc/core/constants/http-error-code';
 import { DbcResponseBody } from '@dbc/core/dto/response/dbc-response-body';
 import { PinoLogger } from 'nestjs-pino';
@@ -21,9 +21,10 @@ import { PinoLogger } from 'nestjs-pino';
  * 3. 对未知异常返回 500 状态码
  * 4. 统一转换为 DbcResponseBody 格式
  *
- * 使用方式：
- * 在 main.ts 中注册：
- * app.useGlobalFilters(app.get(AllExceptionsFilter));
+ * 注册方式：
+ * - 已在 CoreModule 中通过 APP_FILTER 自动注册为全局过滤器
+ * - 只需在应用模块中导入 CoreModule 即可自动启用
+ * - 支持依赖注入（需要 PinoLogger）
  */
 @Injectable()
 @Catch()
@@ -54,7 +55,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
             // 创建错误响应
             const responseBody = DbcResponseBody.error(
-                ErrorCode.SYSTEM_ERROR_002.code,
+                ERROR_CODE.SYSTEM_ERROR_002.code,
                 friendlyMessage,
             );
 
@@ -68,7 +69,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         );
 
         // 返回通用错误响应
-        const responseBody = DbcResponseBody.error(ErrorCode.SYSTEM_ERROR_001);
+        const responseBody = DbcResponseBody.error(ERROR_CODE.SYSTEM_ERROR_001);
 
         return response
             .status(HttpStatus.INTERNAL_SERVER_ERROR)

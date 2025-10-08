@@ -1,4 +1,4 @@
-import { ErrorCode } from '@dbc/core/constants/error-code';
+import { ErrorCodeType } from '@dbc/core/constants/error-code';
 
 /**
  * DBC 统一响应体
@@ -10,7 +10,7 @@ export class DbcResponseBody<T = any> {
         public code: number,
         public message: string | null,
         public data: T | null,
-    ) {}
+    ) { }
 
     /**
      * 创建成功响应（带数据）
@@ -25,13 +25,13 @@ export class DbcResponseBody<T = any> {
     }
 
     /**
-     * 从 ErrorCode 创建错误响应（带数据）
+     * 从 ErrorCodeType 创建错误响应（带数据）
      */
-    static error<T>(errorCode: ErrorCode, data: T): DbcResponseBody<T>;
+    static error<T>(errorCode: ErrorCodeType, data: T): DbcResponseBody<T>;
     /**
-     * 从 ErrorCode 创建错误响应（无数据）
+     * 从 ErrorCodeType 创建错误响应（无数据）
      */
-    static error(errorCode: ErrorCode): DbcResponseBody<null>;
+    static error(errorCode: ErrorCodeType): DbcResponseBody<null>;
     /**
      * 从 code 和 message 创建错误响应（带数据）
      */
@@ -41,12 +41,17 @@ export class DbcResponseBody<T = any> {
      */
     static error(code: number, message: string): DbcResponseBody<null>;
     static error<T>(
-        errorCodeOrCode: ErrorCode | number,
+        errorCodeOrCode: ErrorCodeType | number,
         messageOrData?: string | T,
         data?: T,
     ): DbcResponseBody<T | null> {
-        // 如果第一个参数是 ErrorCode 实例
-        if (errorCodeOrCode instanceof ErrorCode) {
+        // 如果第一个参数是 ErrorCodeType 对象（有 code 和 message 属性）
+        if (
+            typeof errorCodeOrCode === 'object' &&
+            errorCodeOrCode !== null &&
+            'code' in errorCodeOrCode &&
+            'message' in errorCodeOrCode
+        ) {
             const errorCode = errorCodeOrCode;
             // 如果有第二个参数，则是 data
             const responseData =

@@ -1,3 +1,4 @@
+export * from './core.module';
 export * from './core.service';
 export * from './config/dbc-config.module';
 export * from './config/dbc-configuration';
@@ -8,3 +9,4 @@ export * from './dto/response/dbc-response-body';
 export * from './filters/all-exceptions.filter';
 export * from './interceptors/response-transform.interceptor';
 export * from './logger/logger.module';
+export * from './utils';

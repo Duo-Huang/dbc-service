@@ -1,22 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MiniappController } from './miniapp.controller';
 import { MiniappService } from './miniapp.service';
-import { DbcConfigModule, LoggerModule, AllExceptionsFilter } from '@dbc/core';
-import { APP_FILTER } from '@nestjs/core';
+import { CoreModule } from '@dbc/core';
 
 @Module({
     imports: [
-        DbcConfigModule,
-        // LoggerModule 现在是全局模块，但仍需导入以配置其中间件
-        LoggerModule,
+        // 导入 CoreModule，自动获得配置、日志、全局异常处理等所有核心功能
+        CoreModule,
     ],
     controllers: [MiniappController],
-    providers: [
-        MiniappService,
-        {
-            provide: APP_FILTER,
-            useClass: AllExceptionsFilter,
-        },
-    ],
+    providers: [MiniappService],
 })
 export class MiniappModule {}
