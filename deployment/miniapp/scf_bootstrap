@@ -5,10 +5,9 @@
 
 # 设置环境变量
 export NODE_ENV=production
-export PORT=9000
-export HOST=0.0.0.0
+export SERVER_MINIAPP_PORT=9000
 
 # 启动 NestJS 应用
 # 使用云函数标准 Node.js 环境路径
-SERVERLESS=1 /var/lang/node20/bin/node ./dist/apps/miniapp/main.js
+SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/miniapp/main.js
 

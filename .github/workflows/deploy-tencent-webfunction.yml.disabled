@@ -13,7 +13,90 @@ on:
             - master
             - main
 
+# 防止并发部署
+concurrency:
+    group: deploy-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
+    # ====================================
+    # 检测文件变更
+    # ====================================
+    detect-changes:
+        name: 检测文件变更
+        runs-on: ubuntu-latest
+        outputs:
+            console: ${{ steps.filter.outputs.console }}
+            miniapp: ${{ steps.filter.outputs.miniapp }}
+            shared: ${{ steps.filter.outputs.shared }}
+            should_build: ${{ steps.decide.outputs.should_build }}
+            should_deploy_console: ${{ steps.decide.outputs.deploy_console }}
+            should_deploy_miniapp: ${{ steps.decide.outputs.deploy_miniapp }}
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 检测变更文件
+              uses: dorny/paths-filter@v3
+              id: filter
+              with:
+                  filters: |
+                      console:
+                        - 'apps/console/**'
+                      miniapp:
+                        - 'apps/miniapp/**'
+                      shared:
+                        - 'libs/**'
+                        - 'config/**'
+                        - 'webpack.config.js'
+                        - 'nest-cli.json'
+                        - 'tsconfig*.json'
+                        - 'package.json'
+                        - 'pnpm-lock.yaml'
+                        - 'deployment/**'
+
+            - name: 决策部署策略
+              id: decide
+              run: |
+                  CONSOLE="${{ steps.filter.outputs.console }}"
+                  MINIAPP="${{ steps.filter.outputs.miniapp }}"
+                  SHARED="${{ steps.filter.outputs.shared }}"
+
+                  echo "📊 变更检测结果:"
+                  echo "  Console: $CONSOLE"
+                  echo "  Miniapp: $MINIAPP"
+                  echo "  Shared:  $SHARED"
+
+                  # 判断是否需要构建
+                  if [[ "$CONSOLE" == "true" || "$MINIAPP" == "true" || "$SHARED" == "true" ]]; then
+                    echo "should_build=true" >> $GITHUB_OUTPUT
+                    echo "✅ 需要构建"
+                  else
+                    echo "should_build=false" >> $GITHUB_OUTPUT
+                    echo "⏭️  跳过构建（仅文档变更）"
+                  fi
+
+                  # 判断 Console 是否需要部署
+                  if [[ "$CONSOLE" == "true" || "$SHARED" == "true" ]]; then
+                    echo "deploy_console=true" >> $GITHUB_OUTPUT
+                    echo "📦 Console 需要部署"
+                  else
+                    echo "deploy_console=false" >> $GITHUB_OUTPUT
+                    echo "⏭️  Console 跳过部署"
+                  fi
+
+                  # 判断 Miniapp 是否需要部署
+                  if [[ "$MINIAPP" == "true" || "$SHARED" == "true" ]]; then
+                    echo "deploy_miniapp=true" >> $GITHUB_OUTPUT
+                    echo "📦 Miniapp 需要部署"
+                  else
+                    echo "deploy_miniapp=false" >> $GITHUB_OUTPUT
+                    echo "⏭️  Miniapp 跳过部署"
+                  fi
+
+    # ====================================
+    # 代码检查（总是执行）
+    # ====================================
     lint:
         name: 代码检查
         runs-on: ubuntu-latest
@@ -30,8 +113,18 @@ jobs:
             - name: 设置 Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '22.20.0'
                   cache: 'pnpm'
+
+            - name: 缓存依赖
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.pnpm-store
+                      node_modules
+                  key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-
 
             - name: 安装依赖
               run: pnpm install --frozen-lockfile
@@ -39,6 +132,9 @@ jobs:
             - name: 执行 Lint 检查
               run: pnpm lint
 
+    # ====================================
+    # 单元测试（总是执行）
+    # ====================================
     test:
         name: 单元测试
         runs-on: ubuntu-latest
@@ -55,8 +151,18 @@ jobs:
             - name: 设置 Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '22.20.0'
                   cache: 'pnpm'
+
+            - name: 缓存依赖
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.pnpm-store
+                      node_modules
+                  key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-
 
             - name: 安装依赖
               run: pnpm install --frozen-lockfile
@@ -64,10 +170,14 @@ jobs:
             - name: 执行测试
               run: pnpm test
 
+    # ====================================
+    # 构建项目（条件执行）
+    # ====================================
     build:
-        name: 构建和打包
+        name: 构建项目
         runs-on: ubuntu-latest
-        needs: [lint, test]
+        needs: [lint, test, detect-changes]
+        if: needs.detect-changes.outputs.should_build == 'true'
 
         steps:
             - name: 检出代码
@@ -81,8 +191,18 @@ jobs:
             - name: 设置 Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '22.20.0'
                   cache: 'pnpm'
+
+            - name: 缓存依赖
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      ~/.pnpm-store
+                      node_modules
+                  key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-
 
             - name: 安装依赖
               run: pnpm install --frozen-lockfile
@@ -90,132 +210,160 @@ jobs:
             - name: 构建项目
               run: pnpm build
 
-            - name: 安装生产依赖
-              run: |
-                  echo "清理 node_modules..."
-                  rm -rf node_modules
-
-                  echo "安装生产依赖..."
-                  pnpm install --prod --frozen-lockfile
-
-                  echo "node_modules 大小:"
-                  du -sh node_modules
-
-            - name: 准备 Console 部署包
-              run: |
-                  echo "准备 Console 应用部署包..."
-                  mkdir -p deploy/console
-
-                  # 复制构建产物
-                  cp -r dist/ deploy/console/
-
-                  # 复制生产依赖（Web Function 需要）
-                  cp -r node_modules/ deploy/console/
-
-                  # 复制 scf_bootstrap 启动文件
-                  cp scf_bootstrap_console deploy/console/scf_bootstrap
-                  chmod 777 deploy/console/scf_bootstrap
-
-                  # 复制必要文件
-                  cp package.json deploy/console/
-
-                  # 显示文件结构
-                  echo "Console 部署包结构:"
-                  ls -la deploy/console/
-
-                  # 打包（不超过 50MB 可直接上传，超过需要用 COS）
-                  cd deploy/console
-                  zip -r console.zip . -q
-                  cd ../..
-
-                  echo "Console 压缩包大小:"
-                  du -sh deploy/console/console.zip
-
-            - name: 准备 Miniapp 部署包
-              run: |
-                  echo "准备 Miniapp 应用部署包..."
-                  mkdir -p deploy/miniapp
-
-                  # 复制构建产物
-                  cp -r dist/ deploy/miniapp/
-
-                  # 复制生产依赖
-                  cp -r node_modules/ deploy/miniapp/
-
-                  # 复制 scf_bootstrap 启动文件
-                  cp scf_bootstrap_miniapp deploy/miniapp/scf_bootstrap
-                  chmod 777 deploy/miniapp/scf_bootstrap
-
-                  # 复制必要文件
-                  cp package.json deploy/miniapp/
-
-                  # 显示文件结构
-                  echo "Miniapp 部署包结构:"
-                  ls -la deploy/miniapp/
-
-                  # 打包
-                  cd deploy/miniapp
-                  zip -r miniapp.zip . -q
-                  cd ../..
-
-                  echo "Miniapp 压缩包大小:"
-                  du -sh deploy/miniapp/miniapp.zip
-
-            - name: 检查包大小
-              run: |
-                  echo "================================"
-                  echo "检查部署包大小"
-                  echo "================================"
-
-                  CONSOLE_SIZE=$(du -m deploy/console/console.zip | cut -f1)
-                  MINIAPP_SIZE=$(du -m deploy/miniapp/miniapp.zip | cut -f1)
-
-                  echo "Console 包: ${CONSOLE_SIZE}MB"
-                  echo "Miniapp 包: ${MINIAPP_SIZE}MB"
-                  echo ""
-
-                  # 腾讯云 Web Function 限制
-                  # - 直接上传: 50MB
-                  # - COS 上传: 500MB
-
-                  if [ $CONSOLE_SIZE -gt 50 ]; then
-                      echo "⚠️  Console 包超过 50MB，需要通过 COS 上传"
-                  else
-                      echo "✅ Console 包可以直接上传"
-                  fi
-
-                  if [ $MINIAPP_SIZE -gt 50 ]; then
-                      echo "⚠️  Miniapp 包超过 50MB，需要通过 COS 上传"
-                  else
-                      echo "✅ Miniapp 包可以直接上传"
-                  fi
-
-            - name: 上传部署包
+            - name: 上传构建产物
               uses: actions/upload-artifact@v4
               with:
-                  name: webfunction-packages
-                  path: |
-                      deploy/console/console.zip
-                      deploy/miniapp/miniapp.zip
-                  retention-days: 7
+                  name: build-dist
+                  path: dist/
+                  retention-days: 1
 
-    deploy:
-        name: 部署说明
+    # ====================================
+    # 打包 Console 应用（条件执行）
+    # ====================================
+    package-console:
+        name: 打包 Console 应用
         runs-on: ubuntu-latest
-        needs: build
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        needs: [build, detect-changes]
+        if: needs.detect-changes.outputs.should_deploy_console == 'true'
 
         steps:
-            - name: 下载部署包
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22.20.0'
+                  cache: 'pnpm'
+
+            - name: 下载构建产物
               uses: actions/download-artifact@v4
               with:
-                  name: webfunction-packages
-                  path: deploy
+                  name: build-dist
+                  path: dist/
+
+            - name: 设置脚本执行权限
+              run: chmod +x deployment/ci-deploy.sh
+
+            - name: 打包 Console 应用
+              run: ./deployment/ci-deploy.sh console
+
+            - name: 检查部署包大小
+              run: |
+                  if [ -f "serverless_package/console.zip" ]; then
+                    SIZE=$(du -m serverless_package/console.zip | cut -f1)
+                    echo "📦 Console 部署包大小: ${SIZE}MB"
+
+                    if [ $SIZE -gt 50 ]; then
+                      echo "⚠️  部署包超过 50MB，需要通过 COS 上传"
+                      echo "   参考: https://cloud.tencent.com/document/product/583/37940"
+                    else
+                      echo "✅ 部署包可以直接上传"
+                    fi
+                  fi
+
+            - name: 上传 Console 部署包
+              uses: actions/upload-artifact@v4
+              with:
+                  name: console-package
+                  path: serverless_package/console.zip
+                  retention-days: 7
+
+    # ====================================
+    # 打包 Miniapp 应用（条件执行）
+    # ====================================
+    package-miniapp:
+        name: 打包 Miniapp 应用
+        runs-on: ubuntu-latest
+        needs: [build, detect-changes]
+        if: needs.detect-changes.outputs.should_deploy_miniapp == 'true'
+
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22.20.0'
+                  cache: 'pnpm'
+
+            - name: 下载构建产物
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-dist
+                  path: dist/
+
+            - name: 设置脚本执行权限
+              run: chmod +x deployment/ci-deploy.sh
+
+            - name: 打包 Miniapp 应用
+              run: ./deployment/ci-deploy.sh miniapp
+
+            - name: 检查部署包大小
+              run: |
+                  if [ -f "serverless_package/miniapp.zip" ]; then
+                    SIZE=$(du -m serverless_package/miniapp.zip | cut -f1)
+                    echo "📦 Miniapp 部署包大小: ${SIZE}MB"
+
+                    if [ $SIZE -gt 50 ]; then
+                      echo "⚠️  部署包超过 50MB，需要通过 COS 上传"
+                      echo "   参考: https://cloud.tencent.com/document/product/583/37940"
+                    else
+                      echo "✅ 部署包可以直接上传"
+                    fi
+                  fi
+
+            - name: 上传 Miniapp 部署包
+              uses: actions/upload-artifact@v4
+              with:
+                  name: miniapp-package
+                  path: serverless_package/miniapp.zip
+                  retention-days: 7
+
+    # ====================================
+    # 部署说明
+    # ====================================
+    deploy-summary:
+        name: 部署说明
+        runs-on: ubuntu-latest
+        needs: [detect-changes, package-console, package-miniapp]
+        if: |
+            always() &&
+            (needs.package-console.result == 'success' || needs.package-miniapp.result == 'success') &&
+            (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+
+        steps:
+            - name: 下载 Console 部署包
+              if: needs.detect-changes.outputs.should_deploy_console == 'true'
+              uses: actions/download-artifact@v4
+              with:
+                  name: console-package
+                  path: packages/
+              continue-on-error: true
+
+            - name: 下载 Miniapp 部署包
+              if: needs.detect-changes.outputs.should_deploy_miniapp == 'true'
+              uses: actions/download-artifact@v4
+              with:
+                  name: miniapp-package
+                  path: packages/
+              continue-on-error: true
 
             - name: 显示部署包
               run: |
-                  echo "部署包列表:"
-                  ls -lh deploy/
+                  echo "📦 可用的部署包:"
+                  ls -lh packages/ 2>/dev/null || echo "  (无部署包)"
 
             - name: 部署说明
               run: |
@@ -223,14 +371,18 @@ jobs:
                   echo "腾讯云 Web Function 部署包已准备完成"
                   echo "========================================"
                   echo ""
-                  echo "参考文档:"
-                  echo "https://cloud.tencent.com/document/product/1154/59341"
+                  echo "📊 本次构建信息:"
+                  echo "  Console 部署: ${{ needs.detect-changes.outputs.should_deploy_console }}"
+                  echo "  Miniapp 部署: ${{ needs.detect-changes.outputs.should_deploy_miniapp }}"
+                  echo ""
+                  echo "📖 参考文档:"
+                  echo "  https://cloud.tencent.com/document/product/1154/59341"
                   echo ""
                   echo "📦 部署包包含:"
-                  echo "  ✓ dist/ - 构建产物"
-                  echo "  ✓ node_modules/ - 生产依赖"
-                  echo "  ✓ scf_bootstrap - 启动脚本（监听 0.0.0.0:9000）"
-                  echo "  ✓ package.json"
+                  echo "  ✓ dist/ - 构建产物（webpack 打包）"
+                  echo "  ✓ node_modules/ - 仅生产依赖"
+                  echo "  ✓ scf_bootstrap - Web Function 启动脚本"
+                  echo "  ✓ package.json & pnpm-lock.yaml"
                   echo ""
                   echo "🚀 部署方式："
                   echo ""
@@ -238,21 +390,23 @@ jobs:
                   echo "  1. 访问 https://console.cloud.tencent.com/sls"
                   echo "  2. 新建应用 → Web 应用 → Nest.js 框架"
                   echo "  3. 上传方式选择「本地上传」"
-                  echo "  4. 上传 console.zip 或 miniapp.zip"
-                  echo "  5. 完成部署"
+                  echo "  4. 从 GitHub Actions Artifacts 下载对应的 zip 包"
+                  echo "  5. 上传并完成部署"
                   echo ""
-                  echo "方式 2: 通过代码仓库部署"
-                  echo "  1. 在控制台选择「代码仓库拉取」"
-                  echo "  2. 授权 GitHub 仓库访问"
-                  echo "  3. 自动部署"
-                  echo ""
-                  echo "方式 3: 使用 Serverless CLI"
-                  echo "  serverless deploy --target ./deploy/console"
+                  echo "方式 2: 使用 Serverless CLI（自动化）"
+                  echo "  # 下载部署包并解压"
+                  echo "  cd deployment/console"
+                  echo "  serverless deploy --stage prod"
                   echo ""
                   echo "⚠️  注意事项："
-                  echo "  • 应用已配置监听 0.0.0.0:9000（Web Function 要求）"
-                  echo "  • scf_bootstrap 已设置 777 权限"
-                  echo "  • 包含完整 node_modules（Web Function 需要）"
-                  echo "  • 如果超过 50MB，需要通过 COS 上传"
+                  echo "  • 应用监听 0.0.0.0:9000（Web Function 要求）"
+                  echo "  • scf_bootstrap 已设置执行权限"
+                  echo "  • 仅包含生产依赖（减小包体积）"
+                  echo "  • 配置文件已包含在构建产物中"
+                  echo ""
+                  echo "✨ 独立部署优势："
+                  echo "  • Console 和 Miniapp 可独立部署"
+                  echo "  • 修改哪个就部署哪个，节省时间"
+                  echo "  • 共享库（libs/）改动会自动部署两个应用"
                   echo ""
                   echo "========================================"

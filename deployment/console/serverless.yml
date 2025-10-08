@@ -1,27 +1,25 @@
-# Serverless Framework 配置文件
+# Serverless Framework 配置文件 - Console 应用
 # 用于部署到腾讯云 Serverless
 
-service: dbc
+service: dbc-console
 
 provider:
     name: tencent
-    runtime: Nodejs20.15
-    region: ap-guangzhou # 可选: ap-shanghai, ap-beijing, ap-chengdu 等
+    runtime: Nodejs22.20.0
+    region: ap-chengdu # 可选: ap-shanghai, ap-beijing, ap-chengdu 等
     credentials: ~/.tencent/credentials # 腾讯云凭证路径
 
 plugins:
     - serverless-tencent-scf
 
 functions:
-    # Console 应用
     console:
-        handler: index.main_handler
         description: DBC Console 管理后台
         memorySize: 512 # MB, 可选值: 128, 256, 512, 1024, 1536, 3072
         timeout: 30 # 秒
         environment:
             NODE_ENV: production
-            PORT: 9000
+            SERVER_CONSOLE_PORT: 9000
         events:
             - apigw:
                   name: console-api
@@ -38,34 +36,7 @@ functions:
                             method: ANY
                             description: Console 应用所有路由
         package:
-            artifact: serverless_package/console.zip
-
-    # Miniapp 应用
-    miniapp:
-        handler: index.main_handler
-        description: DBC Miniapp 小程序后端
-        memorySize: 512
-        timeout: 30
-        environment:
-            NODE_ENV: production
-            PORT: 9000
-        events:
-            - apigw:
-                  name: miniapp-api
-                  parameters:
-                      serviceId:
-                      protocols:
-                          - http
-                          - https
-                      serviceName: dbc-miniapp-api
-                      description: DBC Miniapp API Gateway
-                      environment: release
-                      endpoints:
-                          - path: /
-                            method: ANY
-                            description: Miniapp 应用所有路由
-        package:
-            artifact: serverless_package/miniapp.zip
+            artifact: ../../serverless_package/console.zip
 
 # 自定义配置
 custom:
@@ -79,22 +50,16 @@ custom:
 #    export TENCENT_SECRET_ID=your-secret-id
 #    export TENCENT_SECRET_KEY=your-secret-key
 #
-# 2. 安装插件
-#    npm install -g serverless
-#    npm install --save-dev serverless-tencent-scf
-#
-# 3. 部署到测试环境
-#    serverless deploy --stage dev
-#
-# 4. 部署到生产环境
+# 2. 部署
+#    cd deployment/console
 #    serverless deploy --stage prod
 #
-# 5. 查看部署信息
+# 3. 查看部署信息
 #    serverless info
 #
-# 6. 查看日志
+# 4. 查看日志
 #    serverless logs -f console
 #
-# 7. 删除服务
+# 5. 删除服务
 #    serverless remove
 

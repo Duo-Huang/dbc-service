@@ -46,6 +46,11 @@ lerna-debug.log*
 .temp
 .tmp
 
+# Serverless directories
+.serverless/
+serverless_package/
+deployment_temp/
+
 # Runtime data
 pids
 *.pid

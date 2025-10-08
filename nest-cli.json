@@ -10,6 +10,15 @@
     "monorepo": true,
     "root": "apps/console",
     "projects": {
+        "core": {
+            "type": "library",
+            "root": "libs/core",
+            "entryFile": "index",
+            "sourceRoot": "libs/core/src",
+            "compilerOptions": {
+                "tsConfigPath": "libs/core/tsconfig.lib.json"
+            }
+        },
         "auth": {
             "type": "library",
             "root": "libs/auth",
@@ -25,16 +34,8 @@
             "entryFile": "main",
             "sourceRoot": "apps/console/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/console/tsconfig.app.json"
-            }
-        },
-        "core": {
-            "type": "library",
-            "root": "libs/core",
-            "entryFile": "index",
-            "sourceRoot": "libs/core/src",
-            "compilerOptions": {
-                "tsConfigPath": "libs/core/tsconfig.lib.json"
+                "tsConfigPath": "apps/console/tsconfig.app.json",
+                "webpackConfigPath": "webpack.config.js"
             }
         },
         "miniapp": {
@@ -43,7 +44,8 @@
             "entryFile": "main",
             "sourceRoot": "apps/miniapp/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/miniapp/tsconfig.app.json"
+                "tsConfigPath": "apps/miniapp/tsconfig.app.json",
+                "webpackConfigPath": "webpack.config.js"
             }
         }
     }
