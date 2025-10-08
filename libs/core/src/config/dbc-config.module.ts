@@ -21,4 +21,4 @@ import configuration from './dbc-configuration';
         }),
     ],
 })
-export class DbcConfigModule { }
+export class DbcConfigModule {}

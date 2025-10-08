@@ -18,23 +18,25 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
             // 开发环境使用 pino-pretty 美化输出
             transport: prettyPrint
                 ? {
-                    target: 'pino-pretty',
-                    options: {
-                        colorize: true,
-                        translateTime: 'SYS:standard',
-                        ignore: 'pid,hostname',
-                        singleLine: false,
-                    },
-                }
+                      target: 'pino-pretty',
+                      options: {
+                          colorize: true,
+                          translateTime: 'SYS:standard',
+                          ignore: 'pid,hostname',
+                          singleLine: false,
+                      },
+                  }
                 : undefined,
-            // 生产环境时间戳格式化
+            // 自定义日志格式化
             formatters: {
                 level: (label: string) => {
                     return { level: label };
                 },
                 bindings: (bindings: Record<string, unknown>) => {
-                    // 移除 pid 和 hostname，减少日志体积
-                    return {};
+                    // 选择性移除 pid 和 hostname，保留其他 bindings
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { pid, hostname, ...rest } = bindings;
+                    return rest;
                 },
             },
             // 使用东八区时间格式

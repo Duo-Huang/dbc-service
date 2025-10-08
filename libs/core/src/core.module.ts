@@ -34,4 +34,4 @@ import { ResponseTransformInterceptor } from './interceptors/response-transform.
         },
     ],
 })
-export class CoreModule { }
+export class CoreModule {}

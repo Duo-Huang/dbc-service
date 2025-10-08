@@ -21,4 +21,4 @@ import { createPinoHttpConfig } from './pino-http.config';
         }),
     ],
 })
-export class LoggerModule { }
+export class LoggerModule {}

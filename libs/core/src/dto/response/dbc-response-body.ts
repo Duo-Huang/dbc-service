@@ -10,7 +10,7 @@ export class DbcResponseBody<T = any> {
         public code: number,
         public message: string | null,
         public data: T | null,
-    ) { }
+    ) {}
 
     /**
      * 创建成功响应（带数据）

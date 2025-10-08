@@ -10,11 +10,13 @@
 
 export const ERROR_CODE = {
     // 系统级错误 1xxx (发生在全局范围内或者不确定具体地方)
-    SYSTEM_ERROR_001: {  // fallback
+    SYSTEM_ERROR_001: {
+        // fallback
         code: 1001,
         message: '未知错误',
     },
-    SYSTEM_ERROR_002: { // 处理所有未被全局处理器处理的异常
+    SYSTEM_ERROR_002: {
+        // 处理所有未被全局处理器处理的异常
         code: 1002,
         message: '请求出错了',
     },
@@ -22,7 +24,8 @@ export const ERROR_CODE = {
         code: 1003,
         message: '请求参数错误', // 全局参数校验的fallback消息
     },
-    SYSTEM_ERROR_004: { // 具体异常api内处理, 这里是全局兜底的错误
+    SYSTEM_ERROR_004: {
+        // 具体异常api内处理, 这里是全局兜底的错误
         code: 1004,
         message: '业务异常',
     },

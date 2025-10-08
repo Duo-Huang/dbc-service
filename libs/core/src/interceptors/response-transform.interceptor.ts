@@ -22,7 +22,8 @@ import { DbcResponseBody } from '@dbc/core/dto/response/dbc-response-body';
  */
 @Injectable()
 export class ResponseTransformInterceptor
-    implements NestInterceptor<unknown, DbcResponseBody<unknown>> {
+    implements NestInterceptor<unknown, DbcResponseBody<unknown>>
+{
     intercept(
         context: ExecutionContext,
         next: CallHandler,
