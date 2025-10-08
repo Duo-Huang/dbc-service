@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConsoleModule } from './console.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
+import { VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
     const app = await NestFactory.create(ConsoleModule, {
@@ -10,6 +11,15 @@ async function bootstrap() {
 
     // 使用 Pino Logger 替换默认 Logger
     app.useLogger(app.get(Logger));
+
+    // 设置全局路由前缀
+    app.setGlobalPrefix('api');
+
+    // 启用 API 版本控制
+    app.enableVersioning({
+        type: VersioningType.URI,
+        defaultVersion: '1',
+    });
 
     // CoreModule 已自动注册全局拦截器和异常过滤器
 
