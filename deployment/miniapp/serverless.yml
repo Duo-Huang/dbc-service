@@ -1,0 +1,39 @@
+# Miniapp 服务配置
+# 使用 SCF CLI 部署: scf deploy
+
+component: scf
+name: dbc-miniapp
+org: qypeak
+app: dbc
+stage: dev
+
+inputs:
+    name: dbc-miniapp
+    src:
+        src: ../../dist/apps/miniapp
+        exclude:
+            - .env
+    handler: scf_bootstrap
+    runtime: Nodejs22.20.0
+    region: ap-chengdu
+    memorySize: 512
+    timeout: 30
+    environment:
+        variables:
+            NODE_ENV: production
+            SERVER_MINIAPP_PORT: 9000
+    layers:
+        - name: dbc-deps-layer
+          version: 1
+    events:
+        - apigw:
+              parameters:
+                  protocols:
+                      - http
+                      - https
+                  serviceName: dbc-miniapp-api
+                  description: DBC Miniapp API Gateway
+                  environment: release
+                  endpoints:
+                      - path: /
+                        method: ANY

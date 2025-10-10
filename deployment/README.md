@@ -42,54 +42,57 @@ CI 流程会自动：
 
 然后从 GitHub Actions 下载部署包，上传到腾讯云控制台即可。
 
-### 方式二：本地打包
+### 方式二：本地部署
 
-使用项目提供的打包脚本：
+使用项目提供的部署脚本：
 
 ```bash
 # 1. 构建项目
 pnpm build
 
-# 2. 运行打包脚本（会自动安装生产依赖）
-./deployment/ci-deploy.sh [app]
-
-# 参数说明:
-#   console - 只打包 Console 应用
-#   miniapp - 只打包 Miniapp 应用
-#   all     - 打包所有应用（默认）
+# 2. 运行部署脚本（智能变更检测）
+./deployment/ci-deploy.sh
 ```
+
+**工作原理：**
+
+- 脚本会自动检测变更（Layer、Console、Miniapp）
+- 根据检测结果自动决定部署什么
+- 只部署有变更的组件
 
 **示例：**
 
 ```bash
-# 只打包 Console 应用
-./deployment/ci-deploy.sh console
-
-# 只打包 Miniapp 应用
-./deployment/ci-deploy.sh miniapp
-
-# 打包所有应用
-./deployment/ci-deploy.sh all
-# 或
+# 智能检测并部署
 ./deployment/ci-deploy.sh
+
+# 强制构建和部署所有（首次部署使用）
+FORCE_BUILD=true ./deployment/ci-deploy.sh
 ```
+
+**环境变量：**
+
+| 变量               | 说明                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| `FORCE_BUILD=true` | 跳过变更检测，强制构建和部署所有（Layer + Console + Miniapp） |
 
 **脚本会自动完成**：
 
-1. ✅ 检查构建产物是否存在
-2. ✅ 复制 dist 目录
-3. ✅ 复制 package.json 和 pnpm-lock.yaml
-4. ✅ **自动安装生产依赖**（`pnpm install --prod --frozen-lockfile`）
-5. ✅ 复制 scf_bootstrap 启动脚本
-6. ✅ 设置正确的文件权限（`chmod +x`）
-7. ✅ 打包成 zip 文件
+1. ✅ **智能变更检测** - 检测应用和 Layer 是否需要更新
+2. ✅ **Layer 管理** - 自动构建和部署 Layer（如果依赖有变更）
+3. ✅ **应用部署** - 使用 SCF CLI 部署应用到腾讯云
+4. ✅ **版本同步** - 自动更新服务配置中的 Layer 版本
+5. ✅ **依赖优化** - 使用 Layer 管理 node_modules，无需打包
 
-**生成的部署包**：
+**变更检测逻辑**：
 
-- `serverless_package/console.zip` - Console 应用
-- `serverless_package/miniapp.zip` - Miniapp 应用
+- **Layer 变更**：检测 `package.json` 中 `dependencies` 字段变更
+- **应用变更**：检测 `apps/console/` 和 `apps/miniapp/` 目录变更
+- **共享变更**：检测 `libs/`、`config/` 等共享代码变更
+- **智能决策**：根据变更类型自动决定部署策略
+- **强制控制**：支持环境变量强制构建特定组件
 
-**注意**：无需手动安装依赖，脚本会在临时目录中自动处理，不会影响你的开发环境。
+**注意**：使用 Layer 管理依赖，部署包更小，启动更快。
 
 ### 方式三：腾讯云控制台部署
 

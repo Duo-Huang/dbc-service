@@ -15,6 +15,15 @@
     - 添加新配置项
     - 常见问题
 
+### 日志相关
+
+- [**LOGGER.md**](./LOGGER.md) - Pino 日志系统使用指南
+    - 日志系统配置
+    - 使用方式（NestJS Logger vs PinoLogger）
+    - 结构化日志
+    - HTTP 请求日志
+    - 最佳实践
+
 ### 调试相关
 
 - [**DEBUG_GUIDE.md**](./DEBUG_GUIDE.md) - VS Code 调试指南
@@ -26,9 +35,10 @@
 ### 部署相关
 
 - [**DEPLOYMENT_SUMMARY.md**](./DEPLOYMENT_SUMMARY.md) - 部署总结文档
-    - 部署流程
-    - 部署配置
-    - 部署注意事项
+    - Serverless Components + Layer 架构
+    - 智能变更检测
+    - 部署流程和配置
+    - 常见问题和最佳实践
 
 ## 🚀 快速开始
 
@@ -51,8 +61,9 @@
 添加新功能时，请同步更新相关文档：
 
 - 新增配置项 → 更新 `CONFIG.md`
+- 日志相关变更 → 更新 `LOGGER.md`
 - 新增调试场景 → 更新 `DEBUG_GUIDE.md`
-- 部署变更 → 更新 `DEPLOYMENT_SUMMARY.md`
+- 部署架构变更 → 更新 `DEPLOYMENT_SUMMARY.md` 和 `deployment/README.md`
 
 ## 🔗 相关资源
 
