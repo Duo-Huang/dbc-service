@@ -6,7 +6,7 @@
 
 ### 配置相关
 
-- [**CONFIG_USAGE.md**](./CONFIG_USAGE.md) - 配置系统使用指南
+- [**CONFIG.md**](./CONFIG.md) - 配置系统使用指南
     - 配置文件结构
     - 配置加载优先级
     - 环境变量覆盖
@@ -44,13 +44,13 @@
 - 环境配置：`config/development.yaml` 或 `config/production.yaml`
 - 环境变量映射：`config/custom-environment-variables.yaml`
 
-详细说明请查看 [CONFIG_USAGE.md](./CONFIG_USAGE.md)
+详细说明请查看 [CONFIG.md](./CONFIG.md)
 
 ## 📝 文档维护
 
 添加新功能时，请同步更新相关文档：
 
-- 新增配置项 → 更新 `CONFIG_USAGE.md`
+- 新增配置项 → 更新 `CONFIG.md`
 - 新增调试场景 → 更新 `DEBUG_GUIDE.md`
 - 部署变更 → 更新 `DEPLOYMENT_SUMMARY.md`
 

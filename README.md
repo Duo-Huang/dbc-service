@@ -12,7 +12,11 @@ dbc/
 ├── libs/
 │   ├── auth/             # 认证模块
 │   └── core/             # 核心模块
-└── deployment/           # 部署配置
+├── database/             # 数据库相关
+│   ├── migration/        # 数据库迁移（待实现）
+│   └── scripts/          # 数据库初始化脚本
+├── deployment/           # 部署配置
+└── compose.yml           # Docker Compose 配置
 ```
 
 ## 快速开始
@@ -22,6 +26,23 @@ dbc/
 ```bash
 pnpm install
 ```
+
+### 数据库
+
+```bash
+# 1. 启动本地数据库（使用 Docker Compose）
+docker compose up -d
+```
+
+**数据库信息：**
+
+- 数据库名：`dbc_local`
+- 端口：`5433` (映射到容器的 5432)
+- 用户：
+    - `dbc_migrator` - 数据库迁移用户
+    - `dbc_miniapp_writer` - Miniapp 应用用户
+    - `dbc_console_writer` - Console 应用用户
+    - `dbc_readonly` - 只读用户
 
 ### 本地开发
 
@@ -61,211 +82,55 @@ pnpm lint
 
 ## 部署到腾讯云
 
-本项目采用**腾讯云 Web Function**部署方式，这是腾讯云官方推荐的 Nest.js 部署方案。
-
-### 🎯 为什么选择 Web Function？
-
-✅ **原生支持** - 直接运行 Nest.js，无需适配层
-✅ **配置简单** - 只需修改监听端口和添加启动脚本
-✅ **官方推荐** - 腾讯云官方文档支持
-✅ **成本低廉** - 按量计费，小流量几乎免费
-✅ **自动扩展** - 根据流量自动扩缩容
-
-**官方文档**: [快速部署 Nestjs 框架](https://cloud.tencent.com/document/product/1154/59341)
+本项目采用**腾讯云 Web Function** 部署方式，直接运行 Nest.js，无需适配器或框架。
 
 ### 快速部署
 
-#### 1. 自动部署（推荐）
-
 ```bash
-# 推送代码到 main 分支
-git push origin main
-
-# GitHub Actions 会自动:
-# - 运行 Lint & Test
-# - 构建项目
-# - 安装生产依赖
-# - 打包成 console.zip 和 miniapp.zip
-```
-
-#### 2. 上传到腾讯云
-
-1. 下载 GitHub Actions 生成的部署包
-2. 访问 [Serverless 控制台](https://console.cloud.tencent.com/sls)
-3. 新建应用 → Web 应用 → Nest.js 框架
-4. 本地上传 → 选择 `console.zip` 或 `miniapp.zip`
-5. 完成部署
-
-#### 3. 本地手动部署
-
-```bash
-# 1. 构建
+# 1. 构建并打包
 pnpm build
+./deployment/ci-deploy.sh console  # 或 miniapp
 
-# 2. 安装生产依赖
-rm -rf node_modules
-pnpm install --prod
-
-# 3. 准备部署包
-mkdir -p deploy/console
-cp -r dist/ deploy/console/
-cp -r node_modules/ deploy/console/
-cp scf_bootstrap_console deploy/console/scf_bootstrap
-chmod 777 deploy/console/scf_bootstrap
-
-# 4. 打包
-cd deploy/console && zip -r console.zip . && cd ../..
-
-# 5. 上传到腾讯云控制台
+# 2. 上传到腾讯云控制台
+# 访问: https://console.cloud.tencent.com/sls
+# 上传: serverless_package/console.zip
 ```
 
-### 部署包结构
+或推送到 `master` 分支，GitHub Actions 自动构建打包。
 
-```
-console.zip
-├── dist/                  # 构建产物
-│   └── apps/console/main.js
-├── node_modules/          # 生产依赖（必须包含）
-├── scf_bootstrap          # 启动脚本（监听 0.0.0.0:9000）
-└── package.json
-```
+**📖 详细部署文档**:
 
-### 详细文档
-
-📖 查看 [docs/DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) 了解部署详情
-
----
-
-## CI/CD Pipeline
-
-项目配置了完整的 GitHub Actions CI/CD 流程：
-
-```
-推送代码
-  ↓
-┌─────────────┬─────────────┐
-│   Lint      │    Test     │  并行执行
-└──────┬──────┴──────┬──────┘
-       └──────┬───────┘
-              ↓
-       ┌─────────────┐
-       │   Build     │
-       └──────┬──────┘
-              ↓
-       ┌─────────────┐
-       │   Package   │  打包 zip (含 node_modules)
-       └──────┬──────┘
-              ↓
-       ┌─────────────┐
-       │   Upload    │  上传 Artifact
-       └─────────────┘
-```
-
-**工作流文件**: `.github/workflows/deploy-tencent-webfunction.yml`
-
----
-
-## 本地测试
-
-### 测试编译后的代码
-
-```bash
-# 构建项目
-pnpm build
-
-# 设置环境变量（模拟 Web Function 环境）
-export PORT=9000
-export HOST=0.0.0.0
-
-# 运行
-node dist/apps/console/main.js
-
-# 访问测试
-curl http://localhost:9000
-```
+- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 完整部署流程和说明
+- [部署配置](deployment/README.md) - 脚本使用和配置
+- [官方文档](https://cloud.tencent.com/document/product/1154/59341) - 腾讯云 Web Function 文档
 
 ---
 
 ## 项目特性
 
-### 已配置的功能
-
-- ✅ **Monorepo 架构** - 多应用统一管理
-- ✅ **共享库** - Auth、Core 等通用模块
-- ✅ **TypeScript** - 类型安全
+- ✅ **Monorepo 架构** - 多应用统一管理（Console / Miniapp）
+- ✅ **PostgreSQL 数据库** - Docker Compose 配置，自动化初始化脚本
 - ✅ **Pino 日志系统** - 高性能结构化日志，自动 HTTP 请求记录
-- ✅ **配置管理** - 多环境配置支持，类型安全的配置验证
-- ✅ **ESLint & Prettier** - 代码规范
-- ✅ **Jest** - 单元测试
-- ✅ **Husky** - Git Hooks
-- ✅ **GitHub Actions** - CI/CD 自动化
-- ✅ **Web Function Ready** - 适配腾讯云部署
+- ✅ **配置管理** - 多环境配置支持，类型安全验证
+- ✅ **代码规范** - ESLint & Prettier & Husky
+- ✅ **自动化测试** - Jest 单元测试
+- ✅ **CI/CD** - GitHub Actions 自动构建部署
+- ✅ **Web Function** - 适配腾讯云 Serverless 部署
 
-### 技术栈
-
-- **框架**: NestJS 11
-- **语言**: TypeScript 5
-- **包管理**: pnpm
-- **日志**: Pino (nestjs-pino)
-- **配置**: config + class-validator
-- **测试**: Jest
-- **构建**: Webpack
-- **部署**: 腾讯云 Web Function
-
----
-
-## 环境要求
-
-- Node.js >= 20
-- pnpm >= 9
-
----
-
-## 费用估算
-
-### 腾讯云 Web Function 免费额度（每月）
-
-- 调用次数：100万次
-- 资源使用：40万 GBs
-- 外网流量：1GB
-
-### 示例：小程序后端
-
-- 100万次调用/月
-- 512MB 内存，200ms 执行时间
-- **月费用**: 约 ¥6.66（超出免费额度部分）
-
-非常适合初创项目！💰
+**技术栈**: NestJS 11 + TypeScript 5 + PostgreSQL 18 + Pino + pnpm
 
 ---
 
 ## 📖 文档
 
-### 核心文档
-
-- **[日志文档](docs/LOGGER.md)** - Pino 日志系统使用指南
-    - 三种使用方式对比
-    - HTTP 请求自动日志
-    - 配置和最佳实践
-
-- **[配置文档](docs/CONFIG.md)** - 配置管理和验证
-    - 多环境配置支持
-    - 环境变量覆盖
-    - 类型安全的配置验证
-
-### 运维文档
-
-- [调试指南](docs/DEBUG_GUIDE.md) - VS Code 调试配置和技巧
-- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 腾讯云部署流程
-- [文档索引](docs/README.md) - 所有文档目录
-
----
-
-## 相关资源
-
-- [NestJS 文档](https://docs.nestjs.com)
-- [腾讯云 Serverless](https://cloud.tencent.com/product/sls)
-- [腾讯云 Web Function 文档](https://cloud.tencent.com/document/product/1154/59341)
+| 类型     | 文档                                                | 说明                         |
+| -------- | --------------------------------------------------- | ---------------------------- |
+| **配置** | [CONFIG.md](docs/CONFIG.md)                         | 配置管理、环境变量、类型验证 |
+| **日志** | [LOGGER.md](docs/LOGGER.md)                         | Pino 日志系统使用指南        |
+| **调试** | [DEBUG_GUIDE.md](docs/DEBUG_GUIDE.md)               | VS Code 调试配置             |
+| **部署** | [DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) | 腾讯云部署完整指南           |
+| **脚本** | [deployment/README.md](deployment/README.md)        | 打包脚本使用说明             |
+| **索引** | [docs/README.md](docs/README.md)                    | 所有文档目录                 |
 
 ---
 

@@ -135,16 +135,11 @@ if [ "$APP" == "miniapp" ] || [ "$APP" == "all" ]; then
 fi
 
 echo "下一步操作:"
-if [ "$APP" == "console" ]; then
-    echo "  1. 手动部署: 上传 console.zip 到腾讯云控制台"
-    echo "  2. 自动部署: cd deployment/console && serverless deploy"
-elif [ "$APP" == "miniapp" ]; then
-    echo "  1. 手动部署: 上传 miniapp.zip 到腾讯云控制台"
-    echo "  2. 自动部署: cd deployment/miniapp && serverless deploy"
-else
-    echo "  1. 手动部署: 分别上传 zip 包到腾讯云控制台"
-    echo "  2. 自动部署 Console: cd deployment/console && serverless deploy"
-    echo "  3. 自动部署 Miniapp: cd deployment/miniapp && serverless deploy"
-fi
+echo "  访问腾讯云 Serverless 应用中心:"
+echo "  https://console.cloud.tencent.com/sls"
+echo ""
+echo "  1. 新建应用 → Web 应用 → Nest.js 框架"
+echo "  2. 选择本地上传，上传生成的 zip 文件"
+echo "  3. 完成部署，获取访问 URL"
 echo "======================================"
 

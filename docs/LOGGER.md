@@ -60,12 +60,22 @@ NODE_ENV=production pnpm run start:prod:console
 | **需要构造函数** | ❌ 不需要                                    | ✅ 需要                                      |
 | **设置上下文**   | 自动（构造参数）                             | 手动 `setContext()`                          |
 | **结构化数据**   | ❌ 不支持                                    | ✅ 支持对象                                  |
+| **参数顺序**     | `log(msg)`                                   | `info(obj?, msg?)` 对象在前                  |
 | **学习成本**     | 零（原生API）                                | 低                                           |
 | **适用场景**     | 日常开发（90%）                              | 需要结构化数据（10%）                        |
 
 ---
 
 ## 💻 详细用法
+
+> ⚠️ **重要提示：PinoLogger 的参数顺序**
+>
+> 使用 PinoLogger 时，参数顺序是：**对象在前，消息在后**
+>
+> - ✅ 正确：`logger.info({ userId, ip }, '用户登录');`
+> - ❌ 错误：`logger.info('用户登录', { userId, ip });`
+>
+> 而 NestJS Logger 只接受字符串消息，不支持结构化数据对象。
 
 ### 方式1: NestJS Logger（日常使用）
 
@@ -115,11 +125,11 @@ export class UserService {
 
     async createUser(userId: number) {
         // 支持结构化数据
-        this.logger.info('创建用户', {
+        this.logger.info({
             userId,
             timestamp: Date.now(),
             metadata: { ... }
-        });
+        }, '创建用户');
     }
 }
 ```
@@ -132,12 +142,17 @@ export class UserService {
 
 **API 方法：**
 
-- `logger.trace(msg, obj?)` - 追踪日志
-- `logger.debug(msg, obj?)` - 调试日志
-- `logger.info(msg, obj?)` - 信息日志
-- `logger.warn(msg, obj?)` - 警告日志
-- `logger.error(msg, obj?)` - 错误日志
-- `logger.fatal(msg, obj?)` - 致命错误
+- `logger.trace(obj?, msg?)` - 追踪日志
+- `logger.debug(obj?, msg?)` - 调试日志
+- `logger.info(obj?, msg?)` - 信息日志
+- `logger.warn(obj?, msg?)` - 警告日志
+- `logger.error(obj?, msg?)` - 错误日志
+- `logger.fatal(obj?, msg?)` - 致命错误
+
+**参数说明：**
+- `obj` - 结构化数据对象（在前）
+- `msg` - 日志消息字符串（在后）
+- 两个参数都是可选的，但推荐提供至少一个
 
 ---
 
@@ -245,8 +260,8 @@ this.logger.error('支付失败', error.stack);
 ### 2. 使用结构化数据（PinoLogger）
 
 ```typescript
-// ✅ 推荐 - 便于日志分析
-this.logger.info('用户登录', { userId, ip, timestamp });
+// ✅ 推荐 - 便于日志分析（对象在前，消息在后）
+this.logger.info({ userId, ip, timestamp }, '用户登录');
 
 // ❌ 不推荐 - 难以解析
 this.logger.info(`用户 ${userId} 从 ${ip} 登录于 ${timestamp}`);
@@ -256,27 +271,42 @@ this.logger.info(`用户 ${userId} 从 ${ip} 登录于 ${timestamp}`);
 
 ```typescript
 // ❌ 不要记录密码、token等
-this.logger.info('用户登录', { password: userData.password });
+this.logger.info({ password: userData.password }, '用户登录');
 
 // ✅ 只记录必要的、非敏感信息
-this.logger.info('用户登录', {
+this.logger.info({
     userId: userData.id,
     username: userData.username,
-});
+}, '用户登录');
 ```
 
 ### 4. 为异步操作添加日志
 
 ```typescript
 async processOrder(orderId: string) {
-    this.logger.log('开始处理订单', { orderId });
+    // 对于 NestJS Logger（方式1），不支持结构化数据
+    this.logger.log(`开始处理订单: ${orderId}`);
 
     try {
         const result = await this.orderService.process(orderId);
-        this.logger.log('订单处理完成', { orderId });
+        this.logger.log(`订单处理完成: ${orderId}`);
         return result;
     } catch (error) {
         this.logger.error('订单处理失败', error.stack);
+        throw error;
+    }
+}
+
+// 如果使用 PinoLogger（方式2），可以使用结构化数据
+async processOrderWithPino(orderId: string) {
+    this.pinoLogger.info({ orderId }, '开始处理订单');
+
+    try {
+        const result = await this.orderService.process(orderId);
+        this.pinoLogger.info({ orderId }, '订单处理完成');
+        return result;
+    } catch (error) {
+        this.pinoLogger.error({ error: error.message, stack: error.stack }, '订单处理失败');
         throw error;
     }
 }
