@@ -1,14 +1,10 @@
-import {
-    formatBeijingTime,
-    getBeijingTime,
-    toBeijingTime,
-} from './date-time.util';
+import { formatLocalTime, getLocalTime, toLocalTime } from './date-time.util';
 
 describe('DateTimeUtil', () => {
     describe('formatBeijingTime', () => {
         it('should return Beijing time string with default format', () => {
             const date = new Date('2024-01-01T00:00:00Z'); // UTC time
-            const result = formatBeijingTime(date);
+            const result = formatLocalTime(date);
 
             // UTC+8, so it should be 08:00:00
             expect(result).toMatch(/2024-01-01 08:00:00\.\d{3}/);
@@ -16,13 +12,13 @@ describe('DateTimeUtil', () => {
 
         it('should return time string with custom format', () => {
             const date = new Date('2024-06-15T12:30:45Z');
-            const result = formatBeijingTime(date, 'YYYY/MM/DD HH:mm');
+            const result = formatLocalTime(date, 'YYYY/MM/DD HH:mm');
 
             expect(result).toBe('2024/06/15 20:30'); // UTC+8
         });
 
         it('should return current Beijing time when no date is provided', () => {
-            const result = formatBeijingTime();
+            const result = formatLocalTime();
 
             expect(result).toMatch(
                 /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}/,
@@ -33,8 +29,8 @@ describe('DateTimeUtil', () => {
             const winterDate = new Date('2024-01-01T00:00:00Z');
             const summerDate = new Date('2024-07-01T00:00:00Z');
 
-            const winterResult = formatBeijingTime(winterDate, 'HH');
-            const summerResult = formatBeijingTime(summerDate, 'HH');
+            const winterResult = formatLocalTime(winterDate, 'HH');
+            const summerResult = formatLocalTime(summerDate, 'HH');
 
             // Both should be UTC+8
             expect(winterResult).toBe('08');
@@ -43,7 +39,7 @@ describe('DateTimeUtil', () => {
 
         it('should handle cross-day conversion correctly', () => {
             const date = new Date('2024-01-01T20:00:00Z'); // UTC 20:00
-            const result = formatBeijingTime(date, 'YYYY-MM-DD HH:mm');
+            const result = formatLocalTime(date, 'YYYY-MM-DD HH:mm');
 
             // UTC+8 = next day 04:00
             expect(result).toBe('2024-01-02 04:00');
@@ -52,7 +48,7 @@ describe('DateTimeUtil', () => {
 
     describe('getBeijingTime', () => {
         it('should return current Beijing time as Date object', () => {
-            const result = getBeijingTime();
+            const result = getLocalTime();
 
             expect(result).toBeInstanceOf(Date);
             expect(result.getTime()).toBeGreaterThan(0);
@@ -60,7 +56,7 @@ describe('DateTimeUtil', () => {
 
         it('should return time close to current time (within 1 second)', () => {
             const before = new Date();
-            const result = getBeijingTime();
+            const result = getLocalTime();
             const after = new Date();
 
             // Allow 1 second margin
@@ -76,7 +72,7 @@ describe('DateTimeUtil', () => {
     describe('toBeijingTime', () => {
         it('should convert UTC time to Beijing time Date object', () => {
             const utcDate = new Date('2024-01-01T00:00:00Z');
-            const result = toBeijingTime(utcDate);
+            const result = toLocalTime(utcDate);
 
             expect(result).toBeInstanceOf(Date);
             // Timestamp should remain the same (Date stores UTC timestamp internally)
@@ -85,7 +81,7 @@ describe('DateTimeUtil', () => {
 
         it('should accept date string as input', () => {
             const dateString = '2024-06-15T12:30:45Z';
-            const result = toBeijingTime(dateString);
+            const result = toLocalTime(dateString);
 
             expect(result).toBeInstanceOf(Date);
             expect(result.getTime()).toBe(new Date(dateString).getTime());
@@ -93,7 +89,7 @@ describe('DateTimeUtil', () => {
 
         it('should handle local timezone string correctly', () => {
             const dateString = '2024-01-01 12:00:00';
-            const result = toBeijingTime(dateString);
+            const result = toLocalTime(dateString);
 
             expect(result).toBeInstanceOf(Date);
             expect(isNaN(result.getTime())).toBe(false);
@@ -101,7 +97,7 @@ describe('DateTimeUtil', () => {
 
         it('should handle ISO format string correctly', () => {
             const isoString = '2024-01-01T00:00:00.000Z';
-            const result = toBeijingTime(isoString);
+            const result = toLocalTime(isoString);
 
             expect(result).toBeInstanceOf(Date);
             expect(result.getTime()).toBe(new Date(isoString).getTime());
@@ -110,8 +106,8 @@ describe('DateTimeUtil', () => {
 
     describe('Integration tests', () => {
         it('should work with formatBeijingTime and getBeijingTime together', () => {
-            const beijingTime = getBeijingTime();
-            const formatted = formatBeijingTime(beijingTime);
+            const beijingTime = getLocalTime();
+            const formatted = formatLocalTime(beijingTime);
 
             expect(formatted).toMatch(
                 /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}/,
@@ -120,8 +116,8 @@ describe('DateTimeUtil', () => {
 
         it('should work with toBeijingTime and formatBeijingTime together', () => {
             const utcDate = new Date('2024-01-01T16:00:00Z');
-            const beijingDate = toBeijingTime(utcDate);
-            const formatted = formatBeijingTime(beijingDate);
+            const beijingDate = toLocalTime(utcDate);
+            const formatted = formatLocalTime(beijingDate);
 
             // UTC 16:00 = Beijing time 00:00 (next day)
             expect(formatted).toMatch(/2024-01-02 00:00:00\.\d{3}/);
@@ -131,11 +127,11 @@ describe('DateTimeUtil', () => {
             const date = new Date('2024-06-15T00:00:00Z');
 
             // Direct formatting
-            const direct = formatBeijingTime(date);
+            const direct = formatLocalTime(date);
 
             // Convert first, then format
-            const converted = toBeijingTime(date);
-            const indirect = formatBeijingTime(converted);
+            const converted = toLocalTime(date);
+            const indirect = formatLocalTime(converted);
 
             // Both approaches should yield the same result
             expect(direct).toBe(indirect);

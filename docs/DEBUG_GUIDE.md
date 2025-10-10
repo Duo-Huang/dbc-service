@@ -32,6 +32,7 @@
 - **端口**: Console=5000, Miniapp=6000 (通过环境变量覆盖)
 - **环境**: `NODE_ENV=development`
 - **场景**: 测试环境变量覆盖功能
+- **说明**: 配置已应用独立化，通过 `CONSOLE_SERVER_PORT` 和 `MINIAPP_SERVER_PORT` 环境变量覆盖
 
 ### 5. 附加到进程
 
@@ -80,8 +81,8 @@
 在调试时，可以在"调试控制台"中执行任意 JavaScript 表达式：
 
 ```javascript
-// 查看变量
-console.log(this.configService.get('server'));
+// 查看变量（配置已扁平化）
+console.log(this.configService.get('server.port'));
 
 // 执行函数
 this.someMethod();
@@ -99,7 +100,7 @@ port = 8888;
 ```json
 "env": {
     "NODE_ENV": "production",
-    "SERVER_CONSOLE_PORT": "8080"
+    "CONSOLE_SERVER_PORT": "8080"
 }
 ```
 
@@ -184,7 +185,7 @@ port = 8888;
 3. **监视表达式**: 实时查看复杂表达式的值
 
     ```
-    例如：this.configService.get('server.console.port')
+    例如：this.configService.get('server.port')
     ```
 
 4. **分层调试**:

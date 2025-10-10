@@ -1,12 +1,15 @@
 import { ConfigService } from '@nestjs/config';
 import type { Params } from 'nestjs-pino';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { formatBeijingTime } from '../utils/date-time.util';
+import { formatLocalTime } from '../utils/date-time.util';
 
 /**
  * 创建 Pino HTTP 配置
  *
  * 根据应用配置生成 pino-http 的参数
+ *
+ * 配置加载函数已经根据 APP_NAME 环境变量返回了当前应用的配置，
+ * 所以直接使用扁平化的 logger 配置即可。
  */
 export function createPinoHttpConfig(configService: ConfigService): Params {
     const prettyPrint = configService.get<boolean>('logger.prettyPrint', false);
@@ -40,7 +43,7 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
                 },
             },
             // 使用东八区时间格式
-            timestamp: () => `,"time":"${formatBeijingTime()}"`,
+            timestamp: () => `,"time":"${formatLocalTime()}"`,
             // 自定义请求/响应序列化器
             serializers: {
                 req(req: IncomingMessage & { id?: string | number }) {

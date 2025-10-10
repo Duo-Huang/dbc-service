@@ -3,6 +3,10 @@ import { ConsoleModule } from './console.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { VersioningType } from '@nestjs/common';
+import { APP_NAMES } from '@dbc/core';
+
+// 设置应用名称，供配置模块使用
+process.env.APP_NAME = APP_NAMES.CONSOLE;
 
 async function bootstrap() {
     const app = await NestFactory.create(ConsoleModule, {
@@ -26,7 +30,8 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
 
     // 从配置中获取端口（优先级：环境变量 > 环境配置文件 > default.yaml）
-    const port = configService.get<number>('server.console.port') || 9000;
+    // 配置已扁平化，直接访问 server.port
+    const port = configService.get<number>('server.port') || 9000;
     const host = '0.0.0.0';
     const logger = app.get(Logger);
 

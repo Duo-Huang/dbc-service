@@ -12,7 +12,7 @@ dayjs.extend(timezone);
  * @param format 时间格式，默认为 'YYYY-MM-DD HH:mm:ss.SSS'
  * @returns 格式化后的时间字符串
  */
-export function formatBeijingTime(
+export function formatLocalTime(
     date?: Date,
     format: string = 'YYYY-MM-DD HH:mm:ss.SSS',
 ): string {
@@ -24,7 +24,7 @@ export function formatBeijingTime(
  * 获取当前东八区时间的 Date 对象
  * @returns Date 对象
  */
-export function getBeijingTime(): Date {
+export function getLocalTime(): Date {
     return dayjs().tz('Asia/Shanghai').toDate();
 }
 
@@ -33,6 +33,6 @@ export function getBeijingTime(): Date {
  * @param date 日期对象或日期字符串
  * @returns 东八区时间的 Date 对象
  */
-export function toBeijingTime(date: Date | string): Date {
+export function toLocalTime(date: Date | string): Date {
     return dayjs(date).tz('Asia/Shanghai').toDate();
 }

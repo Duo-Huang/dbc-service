@@ -21,7 +21,7 @@ inputs:
     environment:
         variables:
             NODE_ENV: production
-            SERVER_CONSOLE_PORT: 9000
+            CONSOLE_SERVER_PORT: 9000
     layers:
         - name: dbc-deps-layer
           version: 1

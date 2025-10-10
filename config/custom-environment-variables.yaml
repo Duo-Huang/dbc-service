@@ -1,5 +1,7 @@
-server:
-    miniapp:
-        port: SERVER_MINIAPP_PORT
-    console:
-        port: SERVER_CONSOLE_PORT
+miniapp:
+    server:
+        port: MINIAPP_SERVER_PORT
+
+console:
+    server:
+        port: CONSOLE_SERVER_PORT

@@ -152,7 +152,7 @@ console.zip
 
 # 设置环境变量
 export NODE_ENV=production
-export SERVER_CONSOLE_PORT=9000
+export CONSOLE_SERVER_PORT=9000
 
 # 启动 NestJS 应用
 # 使用云函数标准 Node.js 环境路径
@@ -166,7 +166,7 @@ SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/console/main.js
 
 # 设置环境变量
 export NODE_ENV=production
-export SERVER_MINIAPP_PORT=9000
+export MINIAPP_SERVER_PORT=9000
 
 # 启动 NestJS 应用
 SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/miniapp/main.js
@@ -187,8 +187,8 @@ SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/miniapp/main.js
 | 变量                  | 说明         | 默认值     |
 | --------------------- | ------------ | ---------- |
 | `NODE_ENV`            | 运行环境     | production |
-| `SERVER_CONSOLE_PORT` | Console 端口 | 9000       |
-| `SERVER_MINIAPP_PORT` | Miniapp 端口 | 9000       |
+| `CONSOLE_SERVER_PORT` | Console 端口 | 9000       |
+| `MINIAPP_SERVER_PORT` | Miniapp 端口 | 9000       |
 
 在 `scf_bootstrap` 中添加：
 

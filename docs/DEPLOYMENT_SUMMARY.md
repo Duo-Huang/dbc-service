@@ -202,7 +202,7 @@ inputs:
     environment:
         variables:
             NODE_ENV: production
-            SERVER_CONSOLE_PORT: 9000
+            CONSOLE_SERVER_PORT: 9000
     layers:
         - name: dbc-deps-layer
           version: 1 # 引用 Layer
@@ -238,7 +238,7 @@ inputs:
 environment:
     variables:
         NODE_ENV: production
-        SERVER_CONSOLE_PORT: 9000
+        CONSOLE_SERVER_PORT: 9000
         DATABASE_HOST: your-db-host
         DATABASE_PORT: 5432
         # ... 其他环境变量

@@ -150,6 +150,7 @@ export class UserService {
 - `logger.fatal(obj?, msg?)` - 致命错误
 
 **参数说明：**
+
 - `obj` - 结构化数据对象（在前）
 - `msg` - 日志消息字符串（在后）
 - 两个参数都是可选的，但推荐提供至少一个
@@ -202,13 +203,23 @@ export class UserService {
 
 ### 日志级别
 
-配置文件位于 `config/` 目录：
+配置文件位于 `config/` 目录，每个应用有独立的日志配置：
+
+**Miniapp 应用:**
 
 | 环境     | 配置文件           | level   | prettyPrint |
 | -------- | ------------------ | ------- | ----------- |
-| 默认     | `default.yaml`     | `info`  | `false`     |
 | 开发环境 | `development.yaml` | `debug` | `true`      |
 | 生产环境 | `production.yaml`  | `warn`  | `false`     |
+
+**Console 应用:**
+
+| 环境     | 配置文件           | level   | prettyPrint |
+| -------- | ------------------ | ------- | ----------- |
+| 开发环境 | `development.yaml` | `debug` | `true`      |
+| 生产环境 | `production.yaml`  | `warn`  | `false`     |
+
+配置路径：`miniapp.logger.*` 和 `console.logger.*`
 
 ### 可用级别
 
@@ -229,13 +240,17 @@ export class UserService {
 
 ### 环境变量
 
-```bash
-# 设置日志级别
-export LOGGER__LEVEL=debug
+由于配置已扁平化，每个应用在启动时通过 `APP_NAME` 环境变量确定自己的配置。
+配置访问路径已简化为：
 
-# 开启美化输出
-export LOGGER__PRETTYPRINT=true
+```typescript
+// 直接访问扁平化的配置
+configService.get('logger.level');
+configService.get('logger.prettyPrint');
 ```
+
+**注意**: 当前配置文件中未定义 logger 的环境变量映射。如需通过环境变量覆盖，
+需要在 `config/custom-environment-variables.yaml` 中添加相应映射。
 
 ---
 
@@ -274,10 +289,13 @@ this.logger.info(`用户 ${userId} 从 ${ip} 登录于 ${timestamp}`);
 this.logger.info({ password: userData.password }, '用户登录');
 
 // ✅ 只记录必要的、非敏感信息
-this.logger.info({
-    userId: userData.id,
-    username: userData.username,
-}, '用户登录');
+this.logger.info(
+    {
+        userId: userData.id,
+        username: userData.username,
+    },
+    '用户登录',
+);
 ```
 
 ### 4. 为异步操作添加日志

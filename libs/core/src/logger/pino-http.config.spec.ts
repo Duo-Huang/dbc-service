@@ -43,7 +43,11 @@ describe('PinoHttpConfig', () => {
 
     describe('createPinoHttpConfig', () => {
         it('should return object containing pinoHttp config', () => {
-            mockConfigService.get.mockReturnValue(false);
+            mockConfigService.get.mockImplementation((key: string) => {
+                if (key === 'logger.prettyPrint') return false;
+                if (key === 'logger.level') return 'info';
+                return undefined;
+            });
 
             const config = createPinoHttpConfig(mockConfigService);
 
@@ -51,8 +55,12 @@ describe('PinoHttpConfig', () => {
             expect(config.pinoHttp).toBeDefined();
         });
 
-        it('should read prettyPrint config from ConfigService', () => {
-            mockConfigService.get.mockReturnValue(false);
+        it('should read logger config from flattened configuration', () => {
+            mockConfigService.get.mockImplementation((key: string) => {
+                if (key === 'logger.prettyPrint') return false;
+                if (key === 'logger.level') return 'debug';
+                return undefined;
+            });
 
             createPinoHttpConfig(mockConfigService);
 
@@ -60,13 +68,6 @@ describe('PinoHttpConfig', () => {
                 'logger.prettyPrint',
                 false,
             );
-        });
-
-        it('should read level config from ConfigService', () => {
-            mockConfigService.get.mockReturnValue('info');
-
-            createPinoHttpConfig(mockConfigService);
-
             expect(mockConfigService.get).toHaveBeenCalledWith(
                 'logger.level',
                 'info',
@@ -109,7 +110,8 @@ describe('PinoHttpConfig', () => {
         it('should set correct log level', () => {
             mockConfigService.get.mockImplementation((key: string) => {
                 if (key === 'logger.level') return 'debug';
-                return false;
+                if (key === 'logger.prettyPrint') return false;
+                return undefined;
             });
 
             const config = createPinoHttpConfig(mockConfigService);
@@ -121,7 +123,8 @@ describe('PinoHttpConfig', () => {
         it('should use default log level info', () => {
             mockConfigService.get.mockImplementation((key: string) => {
                 if (key === 'logger.level') return undefined;
-                return false;
+                if (key === 'logger.prettyPrint') return false;
+                return undefined;
             });
 
             createPinoHttpConfig(mockConfigService);

@@ -1,9 +1,25 @@
-server:
-    miniapp:
+miniapp:
+    server:
         port: 3000
-    console:
-        port: 4000
+    datasource:
+        host: localhost
+        port: 5433
+        database: dbc_local
+        username: dbc_miniapp_writer
+        password: dbc.local.123
+    logger:
+        level: debug
+        prettyPrint: true
 
-logger:
-    level: info
-    prettyPrint: false
+console:
+    server:
+        port: 4000
+    datasource:
+        host: localhost
+        port: 5433
+        database: dbc_local
+        username: dbc_console_writer
+        password: dbc.local.123
+    logger:
+        level: debug
+        prettyPrint: true

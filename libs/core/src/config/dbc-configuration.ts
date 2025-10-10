@@ -1,13 +1,23 @@
 import config from 'config';
 import { plainToClass } from 'class-transformer';
-import { IsBoolean, IsString, validateSync, IsIn } from 'class-validator';
+import {
+    IsBoolean,
+    IsString,
+    validateSync,
+    IsIn,
+    IsNotEmpty,
+    ValidateBy,
+    ValidationOptions,
+    ValidationError,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ValidateNested, IsNumber, Min, Max } from 'class-validator';
 import type { Level } from 'pino';
+import { isFQDN, isIP } from 'class-validator';
+import { APP_NAMES, type AppName } from '../constants';
 
 /**
  * Pino 日志级别常量
- * 从 Pino 的 Level 类型定义中提取，避免硬编码
  */
 const PINO_LOG_LEVELS: readonly Level[] = [
     'trace',
@@ -17,6 +27,39 @@ const PINO_LOG_LEVELS: readonly Level[] = [
     'error',
     'fatal',
 ] as const;
+
+/**
+ * 自定义验证器：验证主机名（支持IP地址和域名）
+ */
+export function IsHostname(validationOptions?: ValidationOptions) {
+    return ValidateBy(
+        {
+            name: 'isHostname',
+            validator: {
+                validate: (value: any) => {
+                    if (typeof value !== 'string' || value.length === 0) {
+                        return false;
+                    }
+
+                    // 检查是否为 IP 地址
+                    if (isIP(value)) {
+                        return true;
+                    }
+
+                    // 检查是否为完全限定域名（FQDN）
+                    // require_tld: false 允许 localhost 这样没有顶级域名的主机名
+                    if (isFQDN(value, { require_tld: false })) {
+                        return true;
+                    }
+
+                    return false;
+                },
+                defaultMessage: () => 'host 必须是有效的 IP 地址或域名',
+            },
+        },
+        validationOptions,
+    );
+}
 
 /**
  * 服务端口配置类
@@ -43,35 +86,102 @@ export class LoggerConfig {
 }
 
 /**
- * 服务器配置类
+ * 数据源配置类
  */
-export class ServerConfig {
+export class DatasourceConfig {
+    @IsHostname()
+    host: string;
+
+    @IsNumber()
+    @Min(1024, { message: '端口号必须大于等于 1024' })
+    @Max(49151, { message: '端口号必须小于等于 49151' })
+    port: number;
+
+    @IsString()
+    @IsNotEmpty({ message: 'database 不能为空' })
+    database: string;
+
+    @IsString()
+    @IsNotEmpty({ message: 'username 不能为空' })
+    username: string;
+
+    @IsString()
+    password: string;
+}
+
+/**
+ * Miniapp 应用配置类
+ * 独立的配置类，支持未来添加 miniapp 特有配置
+ */
+export class MiniappConfig {
     @ValidateNested()
     @Type(() => ServerPortConfig)
-    miniapp: ServerPortConfig;
+    server: ServerPortConfig;
 
     @ValidateNested()
+    @Type(() => DatasourceConfig)
+    datasource: DatasourceConfig;
+
+    @ValidateNested()
+    @Type(() => LoggerConfig)
+    logger: LoggerConfig;
+
+    // 未来可以添加 miniapp 特有配置，例如：
+    // @ValidateNested()
+    // @Type(() => WechatConfig)
+    // wechat?: WechatConfig;
+}
+
+/**
+ * Console 应用配置类
+ * 独立的配置类，支持未来添加 console 特有配置
+ */
+export class ConsoleConfig {
+    @ValidateNested()
     @Type(() => ServerPortConfig)
-    console: ServerPortConfig;
+    server: ServerPortConfig;
+
+    @ValidateNested()
+    @Type(() => DatasourceConfig)
+    datasource: DatasourceConfig;
+
+    @ValidateNested()
+    @Type(() => LoggerConfig)
+    logger: LoggerConfig;
+
+    // 未来可以添加 console 特有配置，例如：
+    // @ValidateNested()
+    // @Type(() => SessionConfig)
+    // session?: SessionConfig;
 }
 
 /**
  * DBC 应用配置类
  * 全局配置对象，包含所有应用配置
+ *
+ * 注意：miniapp 和 console 使用独立的配置类，完全解耦
+ * 每个应用可以拥有各自特有的配置字段
+ *
+ * 属性名与 APP_NAMES 常量值保持一致，确保类型安全
  */
 export class DbcConfiguration {
     @ValidateNested()
-    @Type(() => ServerConfig)
-    server: ServerConfig;
+    @Type(() => MiniappConfig)
+    [APP_NAMES.MINIAPP]: MiniappConfig;
 
     @ValidateNested()
-    @Type(() => LoggerConfig)
-    logger: LoggerConfig;
+    @Type(() => ConsoleConfig)
+    [APP_NAMES.CONSOLE]: ConsoleConfig;
 }
 
 /**
  * 配置加载函数
  * 自动按优先级加载配置：环境变量 > 环境特定配置文件 > default.yaml
+ *
+ * 根据 APP_NAME 环境变量返回对应应用的完整配置
+ * - 直接返回 MiniappConfig 或 ConsoleConfig 对象
+ * - 支持未来差异化配置（如 miniapp 的 wechat，console 的 session）
+ * - 访问不存在的配置字段会返回 undefined，实现自然隔离
  */
 export default () => {
     // 1. 使用 config 包获取合并后的配置（已包含环境变量覆盖）
@@ -90,12 +200,49 @@ export default () => {
     });
 
     if (errors.length > 0) {
+        // 递归提取所有错误消息，包括嵌套对象的错误
+        const extractErrors = (
+            error: ValidationError,
+            prefix = '',
+        ): string[] => {
+            const messages: string[] = [];
+
+            if (error.constraints) {
+                const path = prefix || error.property;
+                messages.push(
+                    ...Object.values(error.constraints).map(
+                        (msg: string) => `${path}: ${msg}`,
+                    ),
+                );
+            }
+
+            if (error.children && error.children.length > 0) {
+                const currentPath = prefix
+                    ? `${prefix}.${error.property}`
+                    : error.property;
+                error.children.forEach((child: ValidationError) => {
+                    messages.push(...extractErrors(child, currentPath));
+                });
+            }
+
+            return messages;
+        };
+
         const errorMessages = errors
-            .map((error) => Object.values(error.constraints || {}).join(', '))
+            .flatMap((error) => extractErrors(error))
             .join('; ');
         throw new Error(`配置验证失败: ${errorMessages}`);
     }
 
-    // 4. 返回验证通过的配置实例
-    return configInstance;
+    // 4. 获取当前运行的应用名称（从环境变量）
+    const appName = process.env.APP_NAME as AppName;
+
+    if (!appName || !Object.values(APP_NAMES).includes(appName)) {
+        throw new Error(
+            `APP_NAME 环境变量未设置或无效，必须是 ${Object.values(APP_NAMES).join(' 或 ')}`,
+        );
+    }
+
+    // 5. 直接返回当前应用的完整配置对象
+    return configInstance[appName];
 };
