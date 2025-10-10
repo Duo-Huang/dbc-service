@@ -15,7 +15,13 @@ dbc/
 ├── database/             # 数据库相关
 │   ├── migration/        # 数据库迁移（待实现）
 │   └── scripts/          # 数据库初始化脚本
-├── deployment/           # 部署配置
+├── deployment/           # 部署配置和脚本
+│   ├── console/          # Console 服务配置
+│   ├── miniapp/          # Miniapp 服务配置
+│   ├── layers/           # Layer 配置
+│   ├── build-layer.sh    # Layer 构建脚本
+│   ├── ci-deploy.sh      # 部署主脚本
+│   └── detect-changes.sh # 变更检测脚本
 └── compose.yml           # Docker Compose 配置
 ```
 

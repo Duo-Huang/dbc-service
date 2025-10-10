@@ -47,7 +47,7 @@ fi
 if [ "$LAYER_CHANGED" = "true" ]; then
     echo ""
     echo "Layer 需要更新，开始构建和部署 Layer..."
-    ./deployment/layers/dep/build-layer.sh
+    ./deployment/build-layer.sh
     cd deployment/layers/dep
     scf deploy
     cd ../../..

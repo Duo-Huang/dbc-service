@@ -11,11 +11,18 @@
 ```
 deployment/
 ├── README.md                   # 部署文档（本文件）
-├── ci-deploy.sh                # 自动打包脚本
+├── build-layer.sh              # Layer 构建脚本
+├── ci-deploy.sh                # 部署主脚本
+├── detect-changes.sh           # 变更检测脚本
 ├── console/                    # Console 应用部署配置
-│   └── scf_bootstrap          # Web Function 启动脚本
-└── miniapp/                    # Miniapp 应用部署配置
-    └── scf_bootstrap          # Web Function 启动脚本
+│   ├── scf_bootstrap           # 启动脚本
+│   └── serverless.yml          # 服务配置
+├── miniapp/                    # Miniapp 应用部署配置
+│   ├── scf_bootstrap           # 启动脚本
+│   └── serverless.yml          # 服务配置
+└── layers/                     # Layer 配置
+    └── dep/
+        └── serverless.yml      # Layer 配置文件
 ```
 
 ---

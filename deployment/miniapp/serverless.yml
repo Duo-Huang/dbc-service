@@ -9,12 +9,12 @@ stage: dev
 
 inputs:
     name: dbc-miniapp
+    type: web
     src:
         src: ../../dist/apps/miniapp
         exclude:
             - .env
-    handler: scf_bootstrap
-    runtime: Nodejs22.20.0
+    runtime: Nodejs22.20
     region: ap-chengdu
     memorySize: 512
     timeout: 30
@@ -26,14 +26,10 @@ inputs:
         - name: dbc-deps-layer
           version: 1
     events:
-        - apigw:
+        - http:
               parameters:
-                  protocols:
-                      - http
-                      - https
-                  serviceName: dbc-miniapp-api
-                  description: DBC Miniapp API Gateway
-                  environment: release
-                  endpoints:
-                      - path: /
-                        method: ANY
+                  netConfig:
+                  enableIntranet: true
+                  enableExtranet: true
+                  qualifier: $DEFAULT
+                  authType: NONE

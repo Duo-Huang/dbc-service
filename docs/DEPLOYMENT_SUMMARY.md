@@ -56,6 +56,20 @@
     ├── dist/apps/miniapp/     # 构建产物
     ├── scf_bootstrap          # 启动脚本
     └── serverless.yml         # 配置文件
+
+部署脚本结构
+deployment/
+├── build-layer.sh             # Layer 构建脚本
+├── ci-deploy.sh               # 部署主脚本
+├── detect-changes.sh          # 变更检测脚本
+├── console/
+│   ├── scf_bootstrap          # Console 启动脚本
+│   └── serverless.yml         # Console 配置
+├── miniapp/
+│   ├── scf_bootstrap          # Miniapp 启动脚本
+│   └── serverless.yml         # Miniapp 配置
+└── layers/dep/
+    └── serverless.yml         # Layer 配置
 ```
 
 ### 部署流程
