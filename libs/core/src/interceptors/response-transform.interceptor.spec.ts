@@ -1,7 +1,7 @@
 import { ExecutionContext, CallHandler } from '@nestjs/common';
 import { of } from 'rxjs';
 import { ResponseTransformInterceptor } from './response-transform.interceptor';
-import { DbcResponseBody } from '@dbc/core/dto/response/dbc-response-body';
+import { ResponseDto } from '@dbc/core/dto/response.dto';
 
 describe('ResponseTransformInterceptor', () => {
     let interceptor: ResponseTransformInterceptor;
@@ -14,7 +14,7 @@ describe('ResponseTransformInterceptor', () => {
     });
 
     describe('intercept', () => {
-        it('should wrap plain data as DbcResponseBody.success()', (done) => {
+        it('should wrap plain data as ResponseDto.success()', (done) => {
             const testData = { id: 1, name: 'test' };
             mockCallHandler = {
                 handle: () => of(testData),
@@ -23,7 +23,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.message).toBeNull();
                     expect(result.data).toEqual(testData);
@@ -31,7 +31,7 @@ describe('ResponseTransformInterceptor', () => {
                 });
         });
 
-        it('should wrap string data as DbcResponseBody.success()', (done) => {
+        it('should wrap string data as ResponseDto.success()', (done) => {
             const testData = 'Hello World';
             mockCallHandler = {
                 handle: () => of(testData),
@@ -40,7 +40,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.message).toBeNull();
                     expect(result.data).toBe(testData);
@@ -48,7 +48,7 @@ describe('ResponseTransformInterceptor', () => {
                 });
         });
 
-        it('should wrap number data as DbcResponseBody.success()', (done) => {
+        it('should wrap number data as ResponseDto.success()', (done) => {
             const testData = 42;
             mockCallHandler = {
                 handle: () => of(testData),
@@ -57,14 +57,14 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.data).toBe(testData);
                     done();
                 });
         });
 
-        it('should wrap array data as DbcResponseBody.success()', (done) => {
+        it('should wrap array data as ResponseDto.success()', (done) => {
             const testData = [1, 2, 3];
             mockCallHandler = {
                 handle: () => of(testData),
@@ -73,7 +73,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.data).toEqual(testData);
                     done();
@@ -88,7 +88,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.message).toBeNull();
                     expect(result.data).toBeNull();
@@ -104,7 +104,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.message).toBeNull();
                     expect(result.data).toBeNull();
@@ -112,8 +112,8 @@ describe('ResponseTransformInterceptor', () => {
                 });
         });
 
-        it('should return data directly if already DbcResponseBody instance', (done) => {
-            const testData = DbcResponseBody.success({ id: 1, name: 'test' });
+        it('should return data directly if already ResponseDto instance', (done) => {
+            const testData = ResponseDto.success({ id: 1, name: 'test' });
             mockCallHandler = {
                 handle: () => of(testData),
             };
@@ -122,13 +122,13 @@ describe('ResponseTransformInterceptor', () => {
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
                     expect(result).toBe(testData); // Should be the same instance
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     done();
                 });
         });
 
-        it('should return error DbcResponseBody instance directly', (done) => {
-            const errorResponse = DbcResponseBody.error(1001, '测试错误');
+        it('should return error ResponseDto instance directly', (done) => {
+            const errorResponse = ResponseDto.error(1001, '测试错误');
             mockCallHandler = {
                 handle: () => of(errorResponse),
             };
@@ -151,7 +151,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.data).toBe(false);
                     done();
@@ -166,7 +166,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.data).toBe(0);
                     done();
@@ -181,7 +181,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.data).toBe('');
                     done();
@@ -205,7 +205,7 @@ describe('ResponseTransformInterceptor', () => {
             interceptor
                 .intercept(mockExecutionContext, mockCallHandler)
                 .subscribe((result) => {
-                    expect(result).toBeInstanceOf(DbcResponseBody);
+                    expect(result).toBeInstanceOf(ResponseDto);
                     expect(result.code).toBe(0);
                     expect(result.data).toEqual(complexData);
                     done();

@@ -3,7 +3,7 @@ import { ConsoleService } from './console.service';
 
 @Controller()
 export class ConsoleController {
-    constructor(private readonly consoleService: ConsoleService) {}
+    constructor(private readonly consoleService: ConsoleService) { }
 
     @Get()
     getHello(): string {

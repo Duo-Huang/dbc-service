@@ -1,7 +1,7 @@
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { PinoLogger } from 'nestjs-pino';
-import { ERROR_CODE } from '@dbc/core/constants/error-code';
+import { ERROR_CODE } from '@dbc/core/constants/error-code.constant';
 import { Response, Request } from 'express';
 
 describe('AllExceptionsFilter', () => {
@@ -75,7 +75,11 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.warn).toHaveBeenCalledWith(
-                expect.stringContaining('[400]'),
+                expect.objectContaining({
+                    err: exception,
+                    statusCode: HttpStatus.BAD_REQUEST,
+                }),
+                'HTTP exception',
             );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.BAD_REQUEST,
@@ -96,7 +100,13 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    err: exception,
+                    statusCode: HttpStatus.UNAUTHORIZED,
+                }),
+                'HTTP exception',
+            );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.UNAUTHORIZED,
             );
@@ -116,7 +126,13 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    err: exception,
+                    statusCode: HttpStatus.FORBIDDEN,
+                }),
+                'HTTP exception',
+            );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.FORBIDDEN,
             );
@@ -133,7 +149,13 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    err: exception,
+                    statusCode: HttpStatus.NOT_FOUND,
+                }),
+                'HTTP exception',
+            );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.NOT_FOUND,
             );
@@ -153,7 +175,13 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    err: exception,
+                    statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+                }),
+                'HTTP exception',
+            );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
@@ -185,7 +213,7 @@ describe('AllExceptionsFilter', () => {
 
             expect(mockResponse.json).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    message: '我是一个茶壶',
+                    message: '自定义错误',
                 }),
             );
         });
@@ -201,11 +229,15 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.warn).toHaveBeenCalledWith(
-                expect.stringContaining('POST /api/test'),
+                expect.objectContaining({
+                    err: exception,
+                    statusCode: HttpStatus.BAD_REQUEST,
+                }),
+                'HTTP exception',
             );
         });
 
-        it('should return correct DbcResponseBody structure', () => {
+        it('should return correct ResponseDto structure', () => {
             const exception = new HttpException('测试', HttpStatus.BAD_REQUEST);
 
             filter.catch(exception, mockArgumentsHost);
@@ -230,8 +262,12 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('Unexpected exception'),
-                expect.any(String), // stack trace
+                expect.objectContaining({
+                    err: exception,
+                    method: mockRequest.method,
+                    url: mockRequest.url,
+                }),
+                'Unexpected exception',
             );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -239,7 +275,7 @@ describe('AllExceptionsFilter', () => {
             expect(mockResponse.json).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_001.code,
-                    message: ERROR_CODE.SYSTEM_ERROR_001.message,
+                    message: ERROR_CODE.SYSTEM_ERROR_001.msg,
                 }),
             );
         });
@@ -250,8 +286,12 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('Unexpected exception'),
-                undefined, // No stack for strings
+                expect.objectContaining({
+                    err: expect.any(Error),
+                    method: mockRequest.method,
+                    url: mockRequest.url,
+                }),
+                'Unexpected exception',
             );
             expect(mockResponse.status).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -286,8 +326,12 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.stringContaining('Error: 带堆栈的错误'),
+                expect.objectContaining({
+                    err: exception,
+                    method: mockRequest.method,
+                    url: mockRequest.url,
+                }),
+                'Unexpected exception',
             );
         });
 
@@ -309,7 +353,7 @@ describe('AllExceptionsFilter', () => {
             expect(mockResponse.json).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_001.code,
-                    message: ERROR_CODE.SYSTEM_ERROR_001.message,
+                    message: ERROR_CODE.SYSTEM_ERROR_001.msg,
                     data: null,
                 }),
             );

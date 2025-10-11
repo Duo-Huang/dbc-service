@@ -4,7 +4,7 @@ export * from './config/dbc-config.module';
 export * from './config/dbc-configuration';
 export * from './constants';
 export * from './exceptions/business.exception';
-export * from './dto/response/dbc-response-body';
+export * from './dto/response.dto';
 export * from './filters/all-exceptions.filter';
 export * from './interceptors/response-transform.interceptor';
 export * from './logger/logger.module';

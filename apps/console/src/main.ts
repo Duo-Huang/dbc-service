@@ -5,6 +5,15 @@ import { Logger } from 'nestjs-pino';
 import { VersioningType } from '@nestjs/common';
 import { APP_NAMES } from '@dbc/core';
 
+// 启动source-map, 用于错误日志的错误堆栈映射
+if (process.env.NODE_ENV === 'production') {
+    void import('source-map-support').then((sms) => {
+        sms.install({
+            handleUncaughtExceptions: false,
+        });
+    });
+}
+
 // 设置应用名称，供配置模块使用
 process.env.APP_NAME = APP_NAMES.CONSOLE;
 
@@ -37,6 +46,5 @@ async function bootstrap() {
 
     await app.listen(port, host);
     logger.log(`Application is running on: http://${host}:${port}`);
-    logger.log(`当前环境: ${process.env.NODE_ENV || 'development'}`);
 }
 bootstrap();

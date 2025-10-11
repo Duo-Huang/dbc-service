@@ -37,8 +37,12 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
                 },
                 bindings: (bindings: Record<string, unknown>) => {
                     // 选择性移除 pid 和 hostname，保留其他 bindings
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const { pid, hostname, ...rest } = bindings;
+                    const {
+                        pid: _,
+                        hostname: _hostname,
+                        type: _type,
+                        ...rest
+                    } = bindings;
                     return rest;
                 },
             },
@@ -63,12 +67,23 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
                         statusCode: res.statusCode,
                     };
                 },
+                // 自定义 Error 序列化器
+                // 生产环境：代码已压缩混淆，stack trace 无实际意义，故移除
+                // 依赖 type + errorCode + message + 上下文信息定位问题
+                // err(err: Error) {
+                //     // 移除 stack，保留其他所有属性（包括 errorCode）
+                //     const { stack: _, ...rest } = err;
+                //     return {
+                //         ...rest,
+                //         ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+                //     };
+                // },
             },
             // 自动记录所有HTTP请求
             autoLogging: true,
             // 根据HTTP状态码自动调整日志级别
             customLogLevel: function (
-                _req: IncomingMessage,
+                req: IncomingMessage,
                 res: ServerResponse & { statusCode: number },
                 err?: Error,
             ) {

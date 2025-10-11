@@ -1,3 +1,3 @@
-export * from './error-code';
-export * from './http-error-code';
-export * from './app-names';
+export * from './error-code.constant';
+export * from './http-error-code.constant';
+export * from './app-names.constant';
