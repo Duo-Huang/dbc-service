@@ -1,4 +1,8 @@
 import { NestFactory } from '@nestjs/core';
+import {
+    FastifyAdapter,
+    NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { ConsoleModule } from './console.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
@@ -18,9 +22,13 @@ if (process.env.NODE_ENV === 'production') {
 process.env.APP_NAME = APP_NAMES.CONSOLE;
 
 async function bootstrap() {
-    const app = await NestFactory.create(ConsoleModule, {
-        bufferLogs: true,
-    });
+    const app = await NestFactory.create<NestFastifyApplication>(
+        ConsoleModule,
+        new FastifyAdapter(),
+        {
+            bufferLogs: true,
+        },
+    );
 
     // 使用 Pino Logger 替换默认 Logger
     app.useLogger(app.get(Logger));

@@ -2,13 +2,14 @@ import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { PinoLogger } from 'nestjs-pino';
 import { ERROR_CODE } from '@dbc/core/constants/error-code.constant';
-import { Response, Request } from 'express';
+import { FastifyReply, FastifyRequest } from 'fastify';
+
 
 describe('AllExceptionsFilter', () => {
     let filter: AllExceptionsFilter;
     let mockLogger: jest.Mocked<PinoLogger>;
-    let mockResponse: jest.Mocked<Partial<Response>>;
-    let mockRequest: Partial<Request>;
+    let mockResponse: jest.Mocked<Partial<FastifyReply>>;
+    let mockRequest: Partial<FastifyRequest>;
     let mockArgumentsHost: ArgumentsHost;
 
     beforeEach(() => {
@@ -28,9 +29,9 @@ describe('AllExceptionsFilter', () => {
 
         // Mock Response
         mockResponse = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn().mockReturnThis(),
-        } as unknown as jest.Mocked<Partial<Response>>;
+            code: jest.fn().mockReturnThis(),
+            send: jest.fn().mockReturnThis(),
+        } as unknown as jest.Mocked<Partial<FastifyReply>>;
 
         // Mock Request
         mockRequest = {
@@ -81,10 +82,10 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'HTTP exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.BAD_REQUEST,
             );
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_002.code,
                     message: '错误的请求',
@@ -107,10 +108,10 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'HTTP exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.UNAUTHORIZED,
             );
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_002.code,
                     message: '未认证的用户',
@@ -133,10 +134,10 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'HTTP exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.FORBIDDEN,
             );
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_002.code,
                     message: '拒绝访问',
@@ -156,10 +157,10 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'HTTP exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.NOT_FOUND,
             );
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_002.code,
                     message: '请求的资源未找到',
@@ -182,10 +183,10 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'HTTP exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_002.code,
                     message: '服务出错, 请稍后再试',
@@ -198,7 +199,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     message: '请求的资源未找到',
                 }),
@@ -211,7 +212,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     message: '自定义错误',
                 }),
@@ -223,10 +224,26 @@ describe('AllExceptionsFilter', () => {
                 '测试异常',
                 HttpStatus.BAD_REQUEST,
             );
-            mockRequest.method = 'POST';
-            mockRequest.url = '/api/test';
+            // Create a new mock request with different values
+            const customMockRequest = {
+                method: 'POST',
+                url: '/api/test',
+            };
+            const customHttpContext = {
+                getResponse: (): unknown => mockResponse,
+                getRequest: (): unknown => customMockRequest,
+                getNext: jest.fn(),
+            };
+            const customMockArgumentsHost = {
+                switchToHttp: jest.fn().mockReturnValue(customHttpContext),
+                getArgByIndex: jest.fn(),
+                getArgs: jest.fn(),
+                getType: jest.fn().mockReturnValue('http'),
+                switchToRpc: jest.fn(),
+                switchToWs: jest.fn(),
+            } as unknown as ArgumentsHost;
 
-            filter.catch(exception, mockArgumentsHost);
+            filter.catch(exception, customMockArgumentsHost);
 
             expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -242,7 +259,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            const calls = (mockResponse.json as jest.Mock).mock.calls;
+            const calls = (mockResponse.send as jest.Mock).mock.calls;
             const responseBody = calls[0][0] as {
                 code: number;
                 message: string;
@@ -269,10 +286,10 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'Unexpected exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_001.code,
                     message: ERROR_CODE.SYSTEM_ERROR_001.msg,
@@ -293,7 +310,7 @@ describe('AllExceptionsFilter', () => {
                 }),
                 'Unexpected exception',
             );
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         });
@@ -304,7 +321,7 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.error).toHaveBeenCalled();
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         });
@@ -315,7 +332,7 @@ describe('AllExceptionsFilter', () => {
             filter.catch(exception, mockArgumentsHost);
 
             expect(mockLogger.error).toHaveBeenCalled();
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         });
@@ -340,7 +357,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockResponse.status).toHaveBeenCalledWith(
+            expect(mockResponse.code).toHaveBeenCalledWith(
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         });
@@ -350,7 +367,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockResponse.json).toHaveBeenCalledWith(
+            expect(mockResponse.send).toHaveBeenCalledWith(
                 expect.objectContaining({
                     code: ERROR_CODE.SYSTEM_ERROR_001.code,
                     message: ERROR_CODE.SYSTEM_ERROR_001.msg,
@@ -370,7 +387,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockResponse.json).toHaveBeenCalled();
+            expect(mockResponse.send).toHaveBeenCalled();
         });
 
         it('should handle error messages with special characters', () => {
@@ -382,7 +399,7 @@ describe('AllExceptionsFilter', () => {
 
             filter.catch(exception, mockArgumentsHost);
 
-            expect(mockResponse.json).toHaveBeenCalled();
+            expect(mockResponse.send).toHaveBeenCalled();
         });
 
         it('should handle circular reference in exception object', () => {

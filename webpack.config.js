@@ -9,13 +9,10 @@ module.exports = function (options) {
 
     return {
         ...options,
-        // 设置 mode（Webpack 会根据此启用不同的优化）
         mode: isProduction ? 'production' : 'development',
 
-        // Source map 配置：服务端代码无需隐藏，生产和开发都生成完整的 source-map
         devtool: 'source-map',
 
-        // 输出配置
         output: {
             ...options.output,
             // Source map 路径映射：使用绝对路径
@@ -32,9 +29,7 @@ module.exports = function (options) {
             },
         },
 
-        // 优化配置
         optimization: {
-            // 生产环境启用压缩
             minimize: isProduction,
             minimizer: isProduction
                 ? [
@@ -49,14 +44,13 @@ module.exports = function (options) {
                                   comments: false, // 移除注释
                               },
                           },
-                          extractComments: false, // 不提取注释到单独文件
-                          parallel: true, // 并行压缩
+                          extractComments: false,
+                          parallel: true,
                       }),
                   ]
                 : [],
         },
 
-        // 性能提示
         performance: {
             hints: isProduction ? 'warning' : false,
             maxEntrypointSize: 1024 * 1024, // 1MB

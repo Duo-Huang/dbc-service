@@ -11,7 +11,6 @@
 export const ERROR_CODE = {
     // 系统级错误 1xxx (发生在全局范围内或者不确定具体地方)
     SYSTEM_ERROR_001: {
-        // fallback
         code: 1001,
         msg: '未知错误',
     },

@@ -6,7 +6,7 @@ import {
     HttpStatus,
     Injectable,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import { ERROR_CODE } from '@dbc/core/constants/error-code.constant';
 import { HTTP_ERROR_CODE } from '@dbc/core/constants';
 import { ResponseDto } from '@dbc/core/dto/response.dto';
@@ -36,8 +36,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
-        const response = ctx.getResponse<Response>();
-        const request = ctx.getRequest<Request>();
+        const request = ctx.getRequest<FastifyRequest>();
+        const response = ctx.getResponse<FastifyReply>();
 
         // 处理 NestJS 的 HttpException
         if (exception instanceof HttpException) {
@@ -64,7 +64,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 friendlyMessage || ERROR_CODE.SYSTEM_ERROR_002.msg,
             );
 
-            return response.status(statusCode).json(responseBody);
+            return response.code(statusCode).send(responseBody);
         }
 
         // 业务异常处理
@@ -81,7 +81,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
             // 创建错误响应
             const responseBody = ResponseDto.error(exception.errorCode);
 
-            return response.status(HttpStatus.BAD_REQUEST).json(responseBody);
+            return response.code(HttpStatus.BAD_REQUEST).send(responseBody);
         }
 
         // 处理未知异常
@@ -101,7 +101,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const responseBody = ResponseDto.error(ERROR_CODE.SYSTEM_ERROR_001);
 
         return response
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .json(responseBody);
+            .code(HttpStatus.INTERNAL_SERVER_ERROR)
+            .send(responseBody);
     }
 }
