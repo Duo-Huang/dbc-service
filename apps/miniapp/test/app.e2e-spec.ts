@@ -1,25 +1,55 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
+import {
+    FastifyAdapter,
+    NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import request from 'supertest';
+import { APP_NAMES } from '@dbc/core';
 import { MiniappModule } from './../src/miniapp.module';
-import type { Express } from 'express';
+
+// 设置应用名称环境变量，供配置模块使用
+process.env.APP_NAME = APP_NAMES.MINIAPP;
 
 describe('MiniappController (e2e)', () => {
-    let app: INestApplication<Express>;
+    let app: NestFastifyApplication;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [MiniappModule],
         }).compile();
 
-        app = moduleFixture.createNestApplication();
+        app = moduleFixture.createNestApplication<NestFastifyApplication>(
+            new FastifyAdapter(),
+        );
+
+        // 设置全局路由前缀（与 main.ts 保持一致）
+        app.setGlobalPrefix('api');
+
+        // 启用 API 版本控制（与 main.ts 保持一致）
+        app.enableVersioning({
+            type: VersioningType.URI,
+            defaultVersion: '1',
+        });
+
         await app.init();
+        await app.getHttpAdapter().getInstance().ready();
     });
 
-    it('/ (GET)', () => {
+    afterAll(async () => {
+        await app.close();
+    });
+
+    it('/api/v1 (GET)', () => {
         return request(app.getHttpServer())
-            .get('/')
+            .get('/api/v1')
             .expect(200)
-            .expect('Hello World!');
+            .expect((res) => {
+                expect(res.body).toEqual({
+                    code: 0,
+                    message: null,
+                    data: 'Hello World!',
+                });
+            });
     });
 });
