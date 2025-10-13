@@ -38,7 +38,7 @@ echo "检测应用和 Layer 变更..."
 source ./deployment/detect-changes.sh
 
 # 检查是否需要部署
-if [ "$LAYER_CHANGED" = "false" ] && [ "$DEPLOY_CONSOLE" = "false" ] && [ "$DEPLOY_MINIAPP" = "false" ]; then
+if [ "$LAYER_CHANGED" = "false" ] && [ "$CONSOLE_CHANGED" = "false" ] && [ "$MINIAPP_CHANGED" = "false" ]; then
     echo "✅ 无需构建和部署，跳过"
     exit 0
 fi
@@ -94,11 +94,11 @@ deploy_app() {
 }
 
 # 3. 根据检测结果部署应用
-if [ "$DEPLOY_CONSOLE" = "true" ]; then
+if [ "$CONSOLE_CHANGED" = "true" ]; then
     deploy_app "console" "Console"
 fi
 
-if [ "$DEPLOY_MINIAPP" = "true" ]; then
+if [ "$MINIAPP_CHANGED" = "true" ]; then
     deploy_app "miniapp" "Miniapp"
 fi
 

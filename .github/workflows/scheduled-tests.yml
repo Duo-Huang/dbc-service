@@ -1,0 +1,98 @@
+name: 定期全量测试
+
+# 定期运行所有测试，确保代码质量
+# 即使没有代码变更，也能发现潜在问题（如依赖更新导致的问题）
+
+on:
+    schedule:
+        # 每天凌晨 2 点运行（UTC 时间）
+        - cron: '0 2 * * *'
+    workflow_dispatch: # 允许手动触发
+
+jobs:
+    full-test:
+        name: 全量测试
+        runs-on: ubuntu-latest
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'pnpm'
+
+            - name: 安装 pnpm
+              run: npm install -g pnpm
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 代码检查
+              run: pnpm lint
+
+            - name: 运行单元测试
+              run: pnpm test
+
+            - name: 运行 E2E 测试（带覆盖率）
+              run: pnpm test:e2e
+
+            - name: 生成测试报告
+              if: always()
+              run: |
+                  echo "📊 测试完成"
+                  echo "查看详细日志以了解测试结果"
+
+            - name: 发送失败通知
+              if: failure()
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const issueTitle = '🚨 定期测试失败 - ' + new Date().toISOString().split('T')[0];
+                      const issueBody = `
+                      ## 定期测试失败
+
+                      **时间**: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+                      **Workflow**: [查看详情](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+                      ### 可能的原因
+                      - 依赖包更新导致的兼容性问题
+                      - 外部服务不可用
+                      - 环境配置问题
+
+                      ### 建议操作
+                      1. 查看 workflow 日志定位具体失败的测试
+                      2. 检查最近的依赖更新
+                      3. 验证测试环境配置
+
+                      ---
+                      *此 issue 由定期测试自动创建*
+                      `;
+
+                      // 检查是否已存在相同标题的 issue
+                      const issues = await github.rest.issues.listForRepo({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        state: 'open',
+                        labels: ['automated-test', 'scheduled-test']
+                      });
+
+                      const existingIssue = issues.data.find(issue => issue.title === issueTitle);
+
+                      if (!existingIssue) {
+                        await github.rest.issues.create({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          title: issueTitle,
+                          body: issueBody,
+                          labels: ['automated-test', 'scheduled-test', 'bug']
+                        });
+                      } else {
+                        await github.rest.issues.createComment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: existingIssue.number,
+                          body: '定期测试再次失败，请尽快处理！\n\n[查看详情](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+                        });
+                      }
