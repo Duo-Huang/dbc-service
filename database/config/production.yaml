@@ -1,0 +1,7 @@
+migration:
+    host: dot_put_secret_here
+    port: dot_put_secret_here
+    database: dot_put_secret_here
+    schema: dot_put_secret_here
+    username: dot_put_secret_here
+    password: dot_put_secret_here

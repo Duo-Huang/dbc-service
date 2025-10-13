@@ -77,8 +77,14 @@ pnpm build:miniapp
 # 单元测试
 pnpm test
 
+# E2E 测试
+pnpm test:e2e                # 所有 E2E 测试
+pnpm test:e2e:console        # 仅 Console
+pnpm test:e2e:miniapp        # 仅 Miniapp
+
 # 测试覆盖率
-pnpm run test:cov
+pnpm test:cov                # 单元测试覆盖率
+pnpm test:e2e:cov            # E2E 测试覆盖率
 
 # 代码检查
 pnpm lint
@@ -131,8 +137,8 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 - ✅ **Pino 日志系统** - 高性能结构化日志，自动 HTTP 请求记录
 - ✅ **配置管理** - 多环境配置支持，类型安全验证
 - ✅ **代码规范** - ESLint & Prettier & Husky
-- ✅ **自动化测试** - Jest 单元测试
-- ✅ **CI/CD** - GitHub Actions 自动构建部署
+- ✅ **智能测试** - Jest 单元测试 + E2E 测试，按需执行
+- ✅ **CI/CD** - GitHub Actions 智能变更检测，自动构建部署
 - ✅ **Web Function** - 适配腾讯云 Serverless 部署
 
 **技术栈**: NestJS 11 + TypeScript 5 + PostgreSQL 18 + Pino + pnpm
@@ -146,6 +152,7 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 | **配置** | [CONFIG.md](docs/CONFIG.md)                         | 配置管理、环境变量、类型验证 |
 | **日志** | [LOGGER.md](docs/LOGGER.md)                         | Pino 日志系统使用指南        |
 | **调试** | [DEBUG_GUIDE.md](docs/DEBUG_GUIDE.md)               | VS Code 调试配置             |
+| **测试** | [CI_TEST_STRATEGY.md](docs/CI_TEST_STRATEGY.md)     | CI/CD 测试策略和最佳实践     |
 | **部署** | [DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) | 腾讯云部署完整指南           |
 | **脚本** | [deployment/README.md](deployment/README.md)        | 打包脚本使用说明             |
 | **索引** | [docs/README.md](docs/README.md)                    | 所有文档目录                 |

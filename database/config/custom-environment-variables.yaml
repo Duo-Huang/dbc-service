@@ -1,0 +1,7 @@
+migration:
+    host: MIGRATION_DB_HOST
+    port: MIGRATION_DB_PORT
+    database: MIGRATION_DB_NAME
+    schema: MIGRATION_DB_SCHEMA
+    username: MIGRATION_USER
+    password: MIGRATION_PASSWORD

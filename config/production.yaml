@@ -2,11 +2,12 @@ miniapp:
     server:
         port: 9000
     datasource:
-        host: localhost
-        port: 5433
-        database: dbc_local
-        username: dbc_miniapp_writer
-        password: dbc.local.123
+        host: dot_put_secret_here
+        port: dot_put_secret_here
+        database: dot_put_secret_here
+        schema: dot_put_secret_here
+        username: dot_put_secret_here
+        password: dot_put_secret_here
     logger:
         level: warn
         prettyPrint: false
@@ -15,11 +16,12 @@ console:
     server:
         port: 9000
     datasource:
-        host: localhost
-        port: 5433
-        database: dbc_local
-        username: dbc_console_writer
-        password: dbc.local.123
+        host: dot_put_secret_here
+        port: dot_put_secret_here
+        database: dot_put_secret_here
+        schema: dot_put_secret_here
+        username: dot_put_secret_here
+        password: dot_put_secret_here
     logger:
         level: warn
         prettyPrint: false

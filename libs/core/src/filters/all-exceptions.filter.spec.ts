@@ -4,7 +4,6 @@ import { PinoLogger } from 'nestjs-pino';
 import { ERROR_CODE } from '@dbc/core/constants/error-code.constant';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
-
 describe('AllExceptionsFilter', () => {
     let filter: AllExceptionsFilter;
     let mockLogger: jest.Mocked<PinoLogger>;

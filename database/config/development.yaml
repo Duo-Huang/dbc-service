@@ -1,0 +1,7 @@
+migration:
+    host: localhost
+    port: 5433
+    database: dbc_local
+    schema: dbc
+    username: dbc_migrator
+    password: dbc.local.migrator.1234

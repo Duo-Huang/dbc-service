@@ -1,0 +1,7 @@
+migration:
+    host: replace_me
+    port: replace_me
+    database: replace_me
+    schema: replace_me
+    username: replace_me
+    password: replace_me

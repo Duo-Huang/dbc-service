@@ -2,24 +2,26 @@ miniapp:
     server:
         port: 3000
     datasource:
-        host: localhost
-        port: 5433
-        database: dbc_local
-        username: dbc_miniapp_writer
-        password: dbc.local.123
+        host: replace_me
+        port: replace_me
+        database: replace_me
+        schema: replace_me
+        username: replace_me
+        password: replace_me
     logger:
-        level: debug
-        prettyPrint: true
+        level: warn
+        prettyPrint: false
 
 console:
     server:
         port: 4000
     datasource:
-        host: localhost
-        port: 5433
-        database: dbc_local
-        username: dbc_console_writer
-        password: dbc.local.123
+        host: replace_me
+        port: replace_me
+        database: replace_me
+        schema: replace_me
+        username: replace_me
+        password: replace_me
     logger:
-        level: debug
-        prettyPrint: true
+        level: warn
+        prettyPrint: false

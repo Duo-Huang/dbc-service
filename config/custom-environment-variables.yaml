@@ -1,7 +1,21 @@
 miniapp:
     server:
         port: MINIAPP_SERVER_PORT
+    datasource:
+        host: MINIAPP_DB_HOST
+        port: MINIAPP_DB_PORT
+        database: MINIAPP_DB_NAME
+        schema: MINIAPP_DB_SCHEMA
+        username: MINIAPP_DB_USER
+        password: MINIAPP_DB_PASSWORD
 
 console:
     server:
         port: CONSOLE_SERVER_PORT
+    datasource:
+        host: CONSOLE_DB_HOST
+        port: CONSOLE_DB_PORT
+        database: CONSOLE_DB_NAME
+        schema: CONSOLE_DB_SCHEMA
+        username: CONSOLE_DB_USER
+        password: CONSOLE_DB_PASSWORD

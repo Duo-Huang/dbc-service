@@ -102,6 +102,10 @@ export class DatasourceConfig {
     database: string;
 
     @IsString()
+    @IsNotEmpty({ message: 'schema 不能为空' })
+    schema: string;
+
+    @IsString()
     @IsNotEmpty({ message: 'username 不能为空' })
     username: string;
 
