@@ -15,6 +15,16 @@
     - 添加新配置项
     - 常见问题
 
+### 数据库相关
+
+- [**MIGRATION.md**](./MIGRATION.md) - 数据库迁移指南
+    - Migration 核心概念
+    - 快速开始和常用命令
+    - 开发工作流程
+    - Entity 设计最佳实践
+    - 命名规范和技术细节
+    - 故障排查和解决方案
+
 ### 日志相关
 
 - [**LOGGER.md**](./LOGGER.md) - Pino 日志系统使用指南
@@ -45,8 +55,10 @@
 ### 本地开发
 
 1. 安装依赖：`pnpm install`
-2. 启动开发服务：`pnpm start:dev:console` 或 `pnpm start:dev:miniapp`
-3. 调试应用：按 `F5` 或查看 [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
+2. 启动数据库：`docker compose up -d`
+3. 运行迁移：`pnpm migration run`
+4. 启动开发服务：`pnpm start:dev:console` 或 `pnpm start:dev:miniapp`
+5. 调试应用：按 `F5` 或查看 [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
 
 ### 配置管理
 
@@ -56,18 +68,40 @@
 
 详细说明请查看 [CONFIG.md](./CONFIG.md)
 
+### 数据库管理
+
+```bash
+# 生成 migration
+pnpm migration generate AddNewFeature
+
+# 运行 migrations
+pnpm migration run
+
+# 查看状态
+pnpm migration show
+
+# 回滚（如需要）
+pnpm migration revert
+```
+
+详细说明请查看 [MIGRATION.md](./MIGRATION.md)
+
 ## 📝 文档维护
 
 添加新功能时，请同步更新相关文档：
 
 - 新增配置项 → 更新 `CONFIG.md`
+- 数据库 schema 变更 → 生成 migration，更新 `MIGRATION.md`（如需要）
 - 日志相关变更 → 更新 `LOGGER.md`
 - 新增调试场景 → 更新 `DEBUG_GUIDE.md`
+- 测试策略变更 → 更新 `CI_TEST_STRATEGY.md`
 - 部署架构变更 → 更新 `DEPLOYMENT_SUMMARY.md` 和 `deployment/README.md`
 
 ## 🔗 相关资源
 
 - [项目 README](../README.md) - 项目主页
 - [NestJS 官方文档](https://docs.nestjs.com/)
+- [TypeORM 官方文档](https://typeorm.io/)
 - [Config 包文档](https://github.com/node-config/node-config)
 - [Class Validator 文档](https://github.com/typestack/class-validator)
+- [Pino 日志文档](https://getpino.io/)

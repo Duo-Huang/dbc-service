@@ -13,8 +13,11 @@ dbc/
 │   ├── auth/             # 认证模块
 │   └── core/             # 核心模块
 ├── database/             # 数据库相关
-│   ├── migration/        # 数据库迁移（待实现）
-│   └── scripts/          # 数据库初始化脚本
+│   ├── config/           # Migration 专用配置
+│   ├── migrations/       # 数据库迁移文件
+│   ├── scripts/          # 数据库初始化脚本
+│   ├── data-source.ts    # TypeORM 数据源配置
+│   └── tsconfig.json     # Migration TypeScript 配置
 ├── deployment/           # 部署配置和脚本
 │   ├── console/          # Console 服务配置
 │   ├── miniapp/          # Miniapp 服务配置
@@ -36,19 +39,22 @@ pnpm install
 ### 数据库
 
 ```bash
-# 1. 启动本地数据库（使用 Docker Compose）
+# 启动数据库
 docker compose up -d
+
+# 运行迁移
+pnpm migration run
 ```
 
-**数据库信息：**
+**快速命令：**
 
-- 数据库名：`dbc_local`
-- 端口：`5433` (映射到容器的 5432)
-- 用户：
-    - `dbc_migrator` - 数据库迁移用户
-    - `dbc_miniapp_writer` - Miniapp 应用用户
-    - `dbc_console_writer` - Console 应用用户
-    - `dbc_readonly` - 只读用户
+```bash
+pnpm migration generate <名称>    # 生成 migration
+pnpm migration run                # 运行 migrations
+pnpm migration show               # 查看状态
+```
+
+📖 详细说明请查看 [Migration 指南](docs/MIGRATION.md)
 
 ### 本地开发
 
@@ -147,15 +153,16 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 
 ## 📖 文档
 
-| 类型     | 文档                                                | 说明                         |
-| -------- | --------------------------------------------------- | ---------------------------- |
-| **配置** | [CONFIG.md](docs/CONFIG.md)                         | 配置管理、环境变量、类型验证 |
-| **日志** | [LOGGER.md](docs/LOGGER.md)                         | Pino 日志系统使用指南        |
-| **调试** | [DEBUG_GUIDE.md](docs/DEBUG_GUIDE.md)               | VS Code 调试配置             |
-| **测试** | [CI_TEST_STRATEGY.md](docs/CI_TEST_STRATEGY.md)     | CI/CD 测试策略和最佳实践     |
-| **部署** | [DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) | 腾讯云部署完整指南           |
-| **脚本** | [deployment/README.md](deployment/README.md)        | 打包脚本使用说明             |
-| **索引** | [docs/README.md](docs/README.md)                    | 所有文档目录                 |
+| 类型       | 文档                                                | 说明                         |
+| ---------- | --------------------------------------------------- | ---------------------------- |
+| **配置**   | [CONFIG.md](docs/CONFIG.md)                         | 配置管理、环境变量、类型验证 |
+| **数据库** | [MIGRATION.md](docs/MIGRATION.md)                   | 数据库迁移完整指南           |
+| **日志**   | [LOGGER.md](docs/LOGGER.md)                         | Pino 日志系统使用指南        |
+| **调试**   | [DEBUG_GUIDE.md](docs/DEBUG_GUIDE.md)               | VS Code 调试配置             |
+| **测试**   | [CI_TEST_STRATEGY.md](docs/CI_TEST_STRATEGY.md)     | CI/CD 测试策略和最佳实践     |
+| **部署**   | [DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) | 腾讯云部署完整指南           |
+| **脚本**   | [deployment/README.md](deployment/README.md)        | 打包脚本使用说明             |
+| **索引**   | [docs/README.md](docs/README.md)                    | 所有文档目录                 |
 
 ---
 
