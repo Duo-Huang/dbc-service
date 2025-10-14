@@ -2,13 +2,13 @@
     "name": "dbc",
     "version": "0.0.1",
     "description": "",
-    "author": "",
+    "author": "glduo666@163.com",
     "private": true,
     "license": "UNLICENSED",
-    "packageManager": "pnpm@9.0.0",
+    "packageManager": "pnpm@10.18.2",
     "engines": {
-        "node": ">=18.0.0",
-        "pnpm": ">=8.0.0",
+        "node": ">=20.0.0",
+        "pnpm": ">=10.0.0",
         "npm": "please-use-pnpm",
         "yarn": "please-use-pnpm"
     },
@@ -39,7 +39,7 @@
         "test:all": "pnpm test && pnpm test:e2e",
         "migration": "node database/scripts/migration-helper.js",
         "clean": "rimraf dist",
-        "prepare": "husky"
+        "prepare": "node -e \"process.env.CI !== 'true' && require('child_process').execSync('husky', {stdio: 'inherit'})\""
     },
     "lint-staged": {
         "**/*.ts": [

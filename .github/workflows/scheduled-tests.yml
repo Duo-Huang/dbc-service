@@ -9,6 +9,10 @@ on:
         - cron: '0 2 * * *'
     workflow_dispatch: # 允许手动触发
 
+permissions:
+    contents: read
+    issues: write
+
 jobs:
     full-test:
         name: 全量测试
@@ -17,14 +21,14 @@ jobs:
             - name: 检出代码
               uses: actions/checkout@v4
 
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
             - name: 设置 Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20'
+                  node-version: '22'
                   cache: 'pnpm'
-
-            - name: 安装 pnpm
-              run: npm install -g pnpm
 
             - name: 安装依赖
               run: pnpm install --frozen-lockfile

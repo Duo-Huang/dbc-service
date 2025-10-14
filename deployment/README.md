@@ -31,23 +31,40 @@ deployment/
 
 ### 方式一：GitHub Actions 自动部署（推荐）
 
-推送代码到指定分支，GitHub Actions 自动触发部署：
+推送代码到 `main` 或 `master` 分支，GitHub Actions 自动触发部署：
 
 ```bash
-# 推送到 main 分支 → 自动构建打包
+# 推送到 main 分支 → 自动构建并部署
 git push origin main
 ```
 
-CI 流程会自动：
+**CI/CD 执行流程：**
 
-1. 运行 Lint & Test
-2. 构建项目
-3. 安装生产依赖
-4. 复制启动脚本
-5. 打包成 zip 文件
-6. 上传为 GitHub Artifacts
+```
+阶段 1：变更检测
+  └─ 使用 jq 精确检测 dependencies、共享代码、应用变更
 
-然后从 GitHub Actions 下载部署包，上传到腾讯云控制台即可。
+阶段 2：并行构建测试（最大化并行）
+  ├─ 构建项目（生成 artifact）
+  ├─ Lint 代码检查
+  └─ 单元测试
+
+阶段 3：按需 E2E 测试（并行）
+  ├─ Console E2E（如有变更）
+  └─ Miniapp E2E（如有变更）
+
+阶段 4：智能部署
+  ├─ 下载构建产物（复用）
+  ├─ 使用 SCF CLI 直接部署到腾讯云（serverless-cloud-framework@1.3.2）
+  └─ 自动更新 Layer 版本
+```
+
+**关键特性：**
+
+- ✅ 自动检测变更，只部署需要的组件
+- ✅ 并行执行，节省 40-75% 时间
+- ✅ 构建产物复用，不重复构建
+- ✅ 精确的 dependencies 检测（使用 jq）
 
 ### 方式二：本地部署
 
@@ -93,11 +110,33 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 
 **变更检测逻辑**：
 
-- **Layer 变更**：检测 `package.json` 中 `dependencies` 字段变更
-- **应用变更**：检测 `apps/console/` 和 `apps/miniapp/` 目录变更
-- **共享变更**：检测 `libs/`、`config/` 等共享代码变更
-- **智能决策**：根据变更类型自动决定部署策略
-- **强制控制**：支持环境变量强制构建特定组件
+```bash
+# Layer 变更：使用 jq 精确检测 dependencies 字段
+DEPS_OLD=$(git show HEAD~1:package.json | jq -S '.dependencies')
+DEPS_NEW=$(git show HEAD:package.json | jq -S '.dependencies')
+if [ "$DEPS_OLD" != "$DEPS_NEW" ]; then
+    LAYER_CHANGED=true
+fi
+
+# 应用变更：检测应用目录变更
+git diff HEAD~1 HEAD --name-only | grep '^apps/console/'  # Console
+git diff HEAD~1 HEAD --name-only | grep '^apps/miniapp/'  # Miniapp
+
+# 共享变更：检测共享代码（影响所有应用）
+git diff HEAD~1 HEAD --name-only | grep -E '^(libs/|config/|...)'
+```
+
+**为什么用 jq？**
+
+- ✅ 只检测 `dependencies` 字段（生产依赖）
+- ✅ 忽略 `devDependencies`、`scripts` 等字段
+- ✅ 精确可靠，避免误判
+
+**前置要求：**
+
+- 必须安装 `jq` 工具（脚本会自动检查）
+- 强制使用 `pnpm` 管理依赖
+- GitHub Actions 需要 `fetch-depth: 2`
 
 **注意**：使用 Layer 管理依赖，部署包更小，启动更快。
 

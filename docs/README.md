@@ -15,6 +15,13 @@
     - 添加新配置项
     - 常见问题
 
+- [**ENVIRONMENT_VARIABLES.md**](./ENVIRONMENT_VARIABLES.md) - 环境变量配置指南
+    - 环境变量清单（GitHub Actions / 应用运行时）
+    - GitHub Web 界面配置教程
+    - VS Code 本地开发配置（.env / launch.json）
+    - 配置验证和故障排查
+    - 安全最佳实践
+
 ### 数据库相关
 
 - [**MIGRATION.md**](./MIGRATION.md) - 数据库迁移指南
@@ -42,11 +49,22 @@
     - 快捷键参考
     - 常见问题解决
 
+### CI/CD 和测试
+
+- [**CI_TEST_STRATEGY.md**](./CI_TEST_STRATEGY.md) - CI/CD 测试策略
+    - 智能按需测试策略
+    - 变更检测脚本设计
+    - GitHub Actions 工作流配置
+    - 并行执行优化
+    - 精确的 dependencies 检测（jq）
+    - 构建产物复用
+    - 技术细节和最佳实践
+
 ### 部署相关
 
 - [**DEPLOYMENT_SUMMARY.md**](./DEPLOYMENT_SUMMARY.md) - 部署总结文档
     - Serverless Components + Layer 架构
-    - 智能变更检测
+    - 智能变更检测（jq 精确比较）
     - 部署流程和配置
     - 常见问题和最佳实践
 

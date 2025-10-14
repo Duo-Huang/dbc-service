@@ -5,15 +5,20 @@
 #
 # 环境变量:
 #   FORCE_BUILD=true|1  - 跳过变更检测，强制构建和部署所有东西
+#   STAGE - 部署环境 (dev/prod，默认: dev)
 #
 # 用法:
 #   ./deployment/ci-deploy.sh
 #
 # 示例:
-#   ./deployment/ci-deploy.sh              # 根据变更检测自动决定
-#   FORCE_BUILD=true ./ci-deploy.sh        # 强制构建和部署所有
+#   ./deployment/ci-deploy.sh              # 根据变更检测自动决定部署到 dev
+#   STAGE=prod ./ci-deploy.sh               # 部署到 prod 环境
+#   FORCE_BUILD=true ./ci-deploy.sh        # 强制构建和部署所有到 dev
 
 set -e  # 遇到错误时退出
+
+# 设置默认 STAGE
+STAGE=${STAGE:-dev}
 
 echo "======================================"
 echo "开始 Serverless 部署流程"
@@ -28,14 +33,39 @@ fi
 # 检查 SCF CLI 是否安装
 if ! command -v scf &> /dev/null; then
     echo "错误: SCF CLI 未安装，请先安装"
-    echo "安装命令: npm install -g @serverless/cli"
+    echo "安装命令:"
+    echo "  1. pnpm setup  # 首次使用需要配置全局 bin 目录"
+    echo "  2. source ~/.zshrc  # 或 source ~/.bashrc"
+    echo "  3. pnpm add -g serverless-cloud-framework@1.3.2"
     exit 1
 fi
 
 # 1. 检测变更
 echo ""
 echo "检测应用和 Layer 变更..."
-source ./deployment/detect-changes.sh
+
+# 优先使用 GitHub Actions 传递的变更状态（通过环境变量）
+# 如果没有传递，则运行本地检测（用于本地部署）
+if [ -z "$LAYER_CHANGED" ] || [ -z "$CONSOLE_CHANGED" ] || [ -z "$MINIAPP_CHANGED" ]; then
+    echo "未检测到 GitHub Actions 的变更状态，运行本地检测..."
+    source ./deployment/detect-changes.sh
+else
+    echo "使用 GitHub Actions 的变更检测结果:"
+    echo "  - Layer: $LAYER_CHANGED"
+    echo "  - Console: $CONSOLE_CHANGED"
+    echo "  - Miniapp: $MINIAPP_CHANGED"
+fi
+
+# 显示部署信息
+echo ""
+echo "======================================"
+echo "部署配置"
+echo "======================================"
+echo "  环境 (STAGE): $STAGE"
+echo "  Layer 变更: $LAYER_CHANGED"
+echo "  Console 变更: $CONSOLE_CHANGED"
+echo "  Miniapp 变更: $MINIAPP_CHANGED"
+echo "======================================"
 
 # 检查是否需要部署
 if [ "$LAYER_CHANGED" = "false" ] && [ "$CONSOLE_CHANGED" = "false" ] && [ "$MINIAPP_CHANGED" = "false" ]; then
@@ -49,7 +79,8 @@ if [ "$LAYER_CHANGED" = "true" ]; then
     echo "Layer 需要更新，开始构建和部署 Layer..."
     ./deployment/build-layer.sh
     cd deployment/layers/dep
-    scf deploy
+    echo "🚀 部署 Layer 到 $STAGE 环境..."
+    scf deploy --stage $STAGE
     cd ../../..
 
     # 更新服务配置中的 Layer 版本
@@ -85,9 +116,9 @@ deploy_app() {
     fi
 
     # 部署应用
-    echo "🚀 开始部署 $app_display_name..."
+    echo "🚀 开始部署 $app_display_name 到 $STAGE 环境..."
     cd deployment/$app_name
-    scf deploy
+    scf deploy --stage $STAGE
     cd ../..
 
     echo "✅ $app_display_name 应用部署完成"

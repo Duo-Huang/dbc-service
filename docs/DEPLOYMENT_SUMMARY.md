@@ -101,8 +101,21 @@ deployment/
 1. **安装 SCF CLI**
 
     ```bash
-    npm install -g @serverless/cli
+    # 首次使用 pnpm 全局安装需要先配置
+    pnpm setup
+    source ~/.zshrc  # 或 source ~/.bashrc (根据你的 shell)
+
+    # 安装 SCF CLI
+    pnpm add -g serverless-cloud-framework@1.3.2
+
+    # 验证安装
+    scf --version
     ```
+
+    **说明：**
+    - `pnpm setup` 会配置全局 bin 目录（`PNPM_HOME`）
+    - 只需要首次运行一次，之后就不需要了
+    - 如果遇到 `ERR_PNPM_NO_GLOBAL_BIN_DIR` 错误，运行 `pnpm setup` 即可解决
 
 2. **配置腾讯云凭证**
 
@@ -115,6 +128,8 @@ deployment/
     # ~/.serverlessrc
     ```
 
+    📖 详细配置教程请查看：[环境变量配置指南](./ENVIRONMENT_VARIABLES.md)
+
 ### 部署步骤
 
 #### 方式一：智能检测部署（推荐）
@@ -123,14 +138,22 @@ deployment/
 # 1. 构建项目
 pnpm build
 
-# 2. 智能检测并部署
+# 2. 智能检测并部署到 DEV 环境（默认）
 ./deployment/ci-deploy.sh
+
+# 3. 部署到 PRODUCTION 环境
+STAGE=prod ./deployment/ci-deploy.sh
 
 # 脚本会自动:
 # - 检测 Layer、Console、Miniapp 变更
 # - 根据检测结果自动部署相应组件
 # - Layer 版本自动更新
 ```
+
+**环境说明：**
+
+- `dev` - 开发/测试环境（默认）
+- `prod` - 生产环境
 
 #### 方式二：强制部署所有（首次部署）
 
@@ -147,13 +170,33 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 # - Miniapp
 ```
 
-#### 方式三：GitHub Actions 自动部署
+#### 方式三：GitHub Actions 自动部署（推荐）
 
-推送代码到 `main` 分支，GitHub Actions 会自动：
+推送代码到 `main` 或 `master` 分支，GitHub Actions 会自动：
 
-1. 运行 Lint & Test
-2. 构建项目
-3. 检测变更并部署
+**阶段 1：变更检测**
+
+- 使用 `jq` 精确检测 dependencies 变更
+- 检测共享代码和应用变更
+
+**阶段 2：并行构建和测试**
+
+- 构建项目（生成部署产物并上传 artifact）
+- Lint 代码检查
+- 运行单元测试
+
+**阶段 3：按需 E2E 测试**
+
+- 只测试有变更的应用
+
+**阶段 4：智能部署**
+
+- 接收阶段 1 的检测结果（避免重复检测）
+- 下载构建产物（复用，不重复构建）
+- 根据变更检测结果部署相应组件
+- 自动更新 Layer 版本
+- **DEV 部署**：push to main/master 自动部署
+- **PRODUCTION 部署**：push tag v\* 或手动触发
 
 ---
 
@@ -222,13 +265,72 @@ inputs:
 
 ---
 
+## 🛠️ 环境配置
+
+### pnpm 全局安装配置
+
+首次使用 pnpm 全局安装包时，需要配置全局 bin 目录：
+
+```bash
+# 1. 配置 pnpm 全局 bin 目录
+pnpm setup
+
+# 2. 重新加载 shell 配置
+source ~/.zshrc  # 如果使用 zsh
+# 或
+source ~/.bashrc  # 如果使用 bash
+
+# 3. 验证配置
+echo $PNPM_HOME
+# 应该输出类似: /Users/your-username/Library/pnpm
+```
+
+**这会在你的 shell 配置文件中添加：**
+
+```bash
+export PNPM_HOME="/Users/your-username/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+```
+
+**常见错误：**
+
+```
+ERR_PNPM_NO_GLOBAL_BIN_DIR  Unable to find the global bin directory
+```
+
+**解决方法：** 运行 `pnpm setup` 并重新加载 shell 配置
+
+---
+
 ## 🔧 环境变量
+
+📖 **完整的环境变量配置教程**：[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)
 
 ### 部署脚本环境变量
 
-| 变量          | 说明                       | 示例                              |
-| ------------- | -------------------------- | --------------------------------- |
-| `FORCE_BUILD` | 跳过变更检测，强制部署所有 | `FORCE_BUILD=true ./ci-deploy.sh` |
+| 变量          | 说明                       | 示例                              | 默认值 |
+| ------------- | -------------------------- | --------------------------------- | ------ |
+| `FORCE_BUILD` | 跳过变更检测，强制部署所有 | `FORCE_BUILD=true ./ci-deploy.sh` | -      |
+| `STAGE`       | 部署环境 (dev/prod)        | `STAGE=prod ./ci-deploy.sh`       | `dev`  |
+
+### GitHub Actions 所需变量
+
+| 变量                     | 说明                        | 用途         | 配置位置       |
+| ------------------------ | --------------------------- | ------------ | -------------- |
+| `TENCENT_SECRET_ID`      | 腾讯云 API 密钥 ID          | DEV 环境部署 | GitHub Secrets |
+| `TENCENT_SECRET_KEY`     | 腾讯云 API 密钥 Key         | DEV 环境部署 | GitHub Secrets |
+| `TENCENT_SECRET_ID_PRO`  | 腾讯云 API 密钥 ID（生产）  | 生产环境部署 | GitHub Secrets |
+| `TENCENT_SECRET_KEY_PRO` | 腾讯云 API 密钥 Key（生产） | 生产环境部署 | GitHub Secrets |
+
+**配置方法**：仓库 Settings → Secrets and variables → Actions → New repository secret
+
+**环境隔离：**
+
+- DEV 和 PRODUCTION 使用不同的腾讯云凭证
+- 推荐使用不同的子账号，配置不同的权限
 
 ### 应用环境变量
 
@@ -248,25 +350,61 @@ environment:
 
 ## 📊 变更检测逻辑
 
-### Layer 变更检测
+### Layer 变更检测（精确到字段）
 
-检测 `package.json` 中 `dependencies` 字段是否有变更：
+使用 `jq` 工具**精确比较** `package.json` 中的 `dependencies` 字段：
 
 ```bash
-git diff HEAD~1 HEAD package.json | grep '"dependencies"'
+# 提取前一个 commit 的 dependencies
+DEPS_OLD=$(git show HEAD~1:package.json | jq -S '.dependencies')
+
+# 提取当前 commit 的 dependencies
+DEPS_NEW=$(git show HEAD:package.json | jq -S '.dependencies')
+
+# 精确比较
+if [ "$DEPS_OLD" != "$DEPS_NEW" ]; then
+    LAYER_CHANGED=true
+fi
 ```
+
+**为什么用 jq？**
+
+- ✅ 只检测 `dependencies` 字段（生产依赖）
+- ✅ 忽略 `devDependencies` 变更（不影响 Layer）
+- ✅ 忽略 `scripts`、`version` 等其他字段
+- ✅ 精确可靠，避免误判
 
 ### 应用变更检测
 
-- **Console**: 检测 `apps/console/` 目录变更
-- **Miniapp**: 检测 `apps/miniapp/` 目录变更
-- **共享代码**: 检测 `libs/`、`config/` 等目录变更
+```bash
+# 检测共享代码（优先级最高）
+git diff HEAD~1 HEAD --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|...)'
+
+# Console 变更 = apps/console/ 变更 OR 共享代码变更
+# Miniapp 变更 = apps/miniapp/ 变更 OR 共享代码变更
+```
+
+**变更检测输出：**
+
+- `LAYER_CHANGED`: dependencies 是否变更
+- `SHARED_CHANGED`: 共享代码是否变更
+- `CONSOLE_CHANGED`: Console 是否需要部署（已包含 shared 影响）
+- `MINIAPP_CHANGED`: Miniapp 是否需要部署（已包含 shared 影响）
 
 ### 智能决策
 
-- Console 或共享代码变更 → 部署 Console
-- Miniapp 或共享代码变更 → 部署 Miniapp
-- 依赖变更 → 部署 Layer
+脚本只负责检测，调用者（GitHub Actions 或 ci-deploy.sh）根据结果决策：
+
+- `LAYER_CHANGED=true` → 重建并部署 Layer
+- `CONSOLE_CHANGED=true` → 部署 Console
+- `MINIAPP_CHANGED=true` → 部署 Miniapp
+- 全部为 `false` → 跳过部署
+
+### 前置要求
+
+- **jq 工具**: 脚本启动时会检查，未安装会报错
+- **pnpm-lock.yaml**: 强制使用 pnpm 管理依赖
+- **Git 历史**: GitHub Actions 需要 `fetch-depth: 2`
 
 ---
 
@@ -331,14 +469,23 @@ curl http://localhost:3000/health
 
 ## 📝 部署检查清单
 
-### 部署前
+### DEV 环境部署前
 
 - [ ] 代码已构建 (`pnpm build`)
-- [ ] SCF CLI 已安装
-- [ ] 腾讯云凭证已配置
-- [ ] 环境变量已设置
+- [ ] SCF CLI 已安装（`serverless-cloud-framework@1.3.2`）
+- [ ] 腾讯云 DEV 凭证已配置
+- [ ] 所有测试通过
 
-### 部署后
+### PRODUCTION 环境部署前
+
+- [ ] DEV 环境已充分测试
+- [ ] 代码已打 tag (v*.*.\*)
+- [ ] 腾讯云 PRODUCTION 凭证已配置
+- [ ] 生产环境变量已设置
+- [ ] 已通知相关人员
+- [ ] 准备回滚方案
+
+### 部署后验证
 
 - [ ] Layer 部署成功
 - [ ] Console 应用部署成功
@@ -346,6 +493,7 @@ curl http://localhost:3000/health
 - [ ] API Gateway 配置正确
 - [ ] 环境变量配置正确
 - [ ] 应用可以正常访问
+- [ ] 生产环境需要额外的冒烟测试
 
 ---
 

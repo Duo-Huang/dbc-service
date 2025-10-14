@@ -15,4 +15,4 @@ inputs:
     runtimes:
         - Nodejs22.20.0
     description: DBC 项目生产依赖 Layer
-    version: 1
+    version: 3

@@ -153,16 +153,17 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 
 ## 📖 文档
 
-| 类型       | 文档                                                | 说明                         |
-| ---------- | --------------------------------------------------- | ---------------------------- |
-| **配置**   | [CONFIG.md](docs/CONFIG.md)                         | 配置管理、环境变量、类型验证 |
-| **数据库** | [MIGRATION.md](docs/MIGRATION.md)                   | 数据库迁移完整指南           |
-| **日志**   | [LOGGER.md](docs/LOGGER.md)                         | Pino 日志系统使用指南        |
-| **调试**   | [DEBUG_GUIDE.md](docs/DEBUG_GUIDE.md)               | VS Code 调试配置             |
-| **测试**   | [CI_TEST_STRATEGY.md](docs/CI_TEST_STRATEGY.md)     | CI/CD 测试策略和最佳实践     |
-| **部署**   | [DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md) | 腾讯云部署完整指南           |
-| **脚本**   | [deployment/README.md](deployment/README.md)        | 打包脚本使用说明             |
-| **索引**   | [docs/README.md](docs/README.md)                    | 所有文档目录                 |
+| 类型         | 文档                                                      | 说明                                     |
+| ------------ | --------------------------------------------------------- | ---------------------------------------- |
+| **配置**     | [CONFIG.md](docs/CONFIG.md)                               | 配置管理、环境变量、类型验证             |
+| **环境变量** | [ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) | 环境变量配置完整教程（GitHub / VS Code） |
+| **数据库**   | [MIGRATION.md](docs/MIGRATION.md)                         | 数据库迁移完整指南                       |
+| **日志**     | [LOGGER.md](docs/LOGGER.md)                               | Pino 日志系统使用指南                    |
+| **调试**     | [DEBUG_GUIDE.md](docs/DEBUG_GUIDE.md)                     | VS Code 调试配置                         |
+| **测试**     | [CI_TEST_STRATEGY.md](docs/CI_TEST_STRATEGY.md)           | CI/CD 测试策略和最佳实践                 |
+| **部署**     | [DEPLOYMENT_SUMMARY.md](docs/DEPLOYMENT_SUMMARY.md)       | 腾讯云部署完整指南                       |
+| **脚本**     | [deployment/README.md](deployment/README.md)              | 打包脚本使用说明                         |
+| **索引**     | [docs/README.md](docs/README.md)                          | 所有文档目录                             |
 
 ---
 

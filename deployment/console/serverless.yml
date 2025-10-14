@@ -29,7 +29,7 @@ inputs:
         - http:
               parameters:
                   netConfig:
-                  enableIntranet: true
-                  enableExtranet: true
+                      enableIntranet: true
+                      enableExtranet: true
                   qualifier: $DEFAULT
                   authType: NONE

@@ -1,0 +1,435 @@
+name: 部署到腾讯云 Web Function
+
+# 基于腾讯云官方文档：https://cloud.tencent.com/document/product/1154/59341
+# 使用 SCF Web Function 直接运行 Nest.js 应用
+
+on:
+    push:
+        branches:
+            - master
+            - main
+    pull_request:
+        branches:
+            - master
+            - main
+    workflow_dispatch: # 允许手动触发完整流程（测试 + DEV + 等待 Approval + PROD）
+
+# 全局环境变量
+env:
+    HUSKY: 0 # CI 环境中禁用 husky
+    TENCENT_CONSOLE_URL: https://console.cloud.tencent.com/sls # 腾讯云控制台 URL
+
+# 权限配置（允许创建和推送 tag）
+permissions:
+    contents: write
+
+# 防止并发部署
+concurrency:
+    group: deploy-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    # ====================================
+    # 变更检测（所有后续 job 依赖此结果）
+    # ====================================
+    detect-changes:
+        name: 检测变更
+        runs-on: ubuntu-latest
+        outputs:
+            # 变更检测脚本输出（已包含影响关系）
+            layer_changed: ${{ steps.detect.outputs.layer_changed }}
+            shared_changed: ${{ steps.detect.outputs.shared_changed }}
+            console_changed: ${{ steps.detect.outputs.console_changed }}
+            miniapp_changed: ${{ steps.detect.outputs.miniapp_changed }}
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2 # 需要前一个 commit 用于对比
+
+            - name: 确保 jq 已安装
+              run: |
+                  if ! command -v jq &> /dev/null; then
+                      echo "安装 jq..."
+                      sudo apt-get update && sudo apt-get install -y jq
+                  else
+                      echo "jq 已安装: $(jq --version)"
+                  fi
+
+            - name: 检测变更
+              id: detect
+              run: |
+                  chmod +x ./deployment/detect-changes.sh
+                  ./deployment/detect-changes.sh
+
+            - name: 输出检测结果
+              run: |
+                  echo "📊 变更检测结果:"
+                  echo "  Layer Changed:    ${{ steps.detect.outputs.layer_changed }}"
+                  echo "  Shared Changed:   ${{ steps.detect.outputs.shared_changed }}"
+                  echo "  Console Changed:  ${{ steps.detect.outputs.console_changed }}"
+                  echo "  Miniapp Changed:  ${{ steps.detect.outputs.miniapp_changed }}"
+                  echo ""
+                  echo "💡 说明:"
+                  echo "  - Console/Miniapp Changed 已包含 Shared 的影响"
+                  echo "  - 调用者可直接使用这些状态做测试/部署决策"
+
+    # ====================================
+    # 构建（与 Lint、单元测试并行）
+    # ====================================
+    build:
+        name: 构建项目
+        runs-on: ubuntu-latest
+        needs: [detect-changes]
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 构建项目
+              run: pnpm build
+
+            - name: 上传构建产物
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dist-files
+                  path: dist/
+                  retention-days: 1
+
+    # ====================================
+    # Lint（与构建、单元测试并行）
+    # ====================================
+    lint:
+        name: 代码检查
+        runs-on: ubuntu-latest
+        needs: [detect-changes]
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 代码检查
+              run: pnpm lint
+
+    # ====================================
+    # 单元测试（与构建、Lint 并行）
+    # ====================================
+    unit-test:
+        name: 单元测试
+        runs-on: ubuntu-latest
+        needs: [detect-changes]
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 运行单元测试
+              run: pnpm test
+
+    # ====================================
+    # Console E2E 测试（按需执行）
+    # ====================================
+    e2e-console:
+        name: Console E2E 测试
+        runs-on: ubuntu-latest
+        needs: [detect-changes, build, lint, unit-test]
+        if: needs.detect-changes.outputs.console_changed == 'true'
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 运行 Console E2E 测试
+              run: pnpm test:e2e:console
+
+    # ====================================
+    # Miniapp E2E 测试（按需执行）
+    # ====================================
+    e2e-miniapp:
+        name: Miniapp E2E 测试
+        runs-on: ubuntu-latest
+        needs: [detect-changes, build, lint, unit-test]
+        if: needs.detect-changes.outputs.miniapp_changed == 'true'
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 运行 Miniapp E2E 测试
+              run: pnpm test:e2e:miniapp
+
+    # ====================================
+    # 部署（复用构建产物）
+    # ====================================
+    deploy-dev:
+        name: 部署DEV环境
+        runs-on: ubuntu-latest
+        needs:
+            [detect-changes, build, lint, unit-test, e2e-console, e2e-miniapp]
+        # push 或 workflow_dispatch 触发 DEV 部署，PR 只测试不部署
+        # 允许某些 e2e 测试被跳过（如果没有变更），但如果运行了就必须通过
+        if: |
+            (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+            (needs.detect-changes.outputs.console_changed == 'true' ||
+             needs.detect-changes.outputs.miniapp_changed == 'true' ||
+             needs.detect-changes.outputs.layer_changed == 'true') &&
+            !contains(needs.*.result, 'failure') &&
+            !contains(needs.*.result, 'cancelled')
+        environment:
+            name: dev
+            url: ${{ env.TENCENT_CONSOLE_URL }}
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 下载构建产物
+              uses: actions/download-artifact@v4
+              with:
+                  name: dist-files
+                  path: dist/
+
+            - name: 确保 jq 已安装
+              run: |
+                  if ! command -v jq &> /dev/null; then
+                      echo "安装 jq..."
+                      sudo apt-get update && sudo apt-get install -y jq
+                  else
+                      echo "jq 已安装: $(jq --version)"
+                  fi
+
+            - name: 安装 SCF CLI
+              run: |
+                  # pnpm/action-setup@v4 已自动配置 PNPM_HOME，无需 pnpm setup
+                  pnpm add -g serverless-cloud-framework@1.3.2
+                  scf --version
+
+            - name: 检测变更并部署
+              run: |
+                  echo "开始变更检测和部署..."
+                  chmod +x ./deployment/ci-deploy.sh
+                  ./deployment/ci-deploy.sh
+              env:
+                  STAGE: dev
+                  SERVERLESS_PLATFORM_VENDOR: tencent #serverless 境外默认为 aws，配置为腾讯
+                  # 传递变更检测结果，避免重复检测
+                  LAYER_CHANGED: ${{ needs.detect-changes.outputs.layer_changed }}
+                  CONSOLE_CHANGED: ${{ needs.detect-changes.outputs.console_changed }}
+                  MINIAPP_CHANGED: ${{ needs.detect-changes.outputs.miniapp_changed }}
+                  # 腾讯云凭证
+                  TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID_DEV }}
+                  TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY_DEV }}
+
+            - name: 更新 DEV 部署标签
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  # 创建/更新 latest-dev tag（强制覆盖）
+                  git tag -f latest-dev -m "🚀 Deployed to DEV environment
+
+                  Commit: ${{ github.sha }}
+                  Deployed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+                  Deployed by: ${{ github.actor }}
+                  Workflow: ${{ github.run_id }}
+
+                  Changes:
+                  - Console: ${{ needs.detect-changes.outputs.console_changed }}
+                  - Miniapp: ${{ needs.detect-changes.outputs.miniapp_changed }}
+                  - Layer: ${{ needs.detect-changes.outputs.layer_changed }}"
+
+                  git push -f origin latest-dev
+
+                  echo "✅ DEV 部署标签已更新: latest-dev → ${{ github.sha }}"
+
+            - name: 输出部署结果
+              run: |
+                  echo "🎉 DEV 环境部署完成！"
+                  echo "📌 Commit: ${{ github.sha }}"
+                  echo "🏷️  Tag: latest-dev"
+                  echo "查看部署状态: ${{ env.TENCENT_CONSOLE_URL }}"
+                  echo ""
+                  echo "💡 查看 tag: git fetch --tags && git log --oneline --decorate -10"
+
+    # ====================================
+    # 生产环境部署（需要手动 Approval）
+    # ====================================
+    deploy-prod:
+        name: 部署生产环境
+        runs-on: ubuntu-latest
+        needs: [detect-changes, deploy-dev] # 下面使用了detect-changes的输出变量, 这里必须定义依赖
+        # DEV 部署成功后，等待手动 Approval（通过 environment: production 实现）
+        if: needs.deploy-dev.result == 'success'
+        environment:
+            name: prod
+            url: ${{ env.TENCENT_CONSOLE_URL }}
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+
+            - name: 安装 pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: 设置 Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            - name: 下载构建产物
+              uses: actions/download-artifact@v4
+              with:
+                  name: dist-files
+                  path: dist/
+
+            - name: 确保 jq 已安装
+              run: |
+                  if ! command -v jq &> /dev/null; then
+                      echo "安装 jq..."
+                      sudo apt-get update && sudo apt-get install -y jq
+                  else
+                      echo "jq 已安装: $(jq --version)"
+                  fi
+
+            - name: 安装 SCF CLI
+              run: |
+                  # pnpm/action-setup@v4 已自动配置 PNPM_HOME，无需 pnpm setup
+                  pnpm add -g serverless-cloud-framework@1.3.2
+                  scf --version
+
+            - name: 生产环境部署确认
+              run: |
+                  echo "⚠️  准备部署到生产环境 ⚠️"
+                  echo ""
+                  echo "部署信息:"
+                  echo "  环境: PRODUCTION"
+                  echo "  触发方式: ${{ github.event_name }}"
+                  echo "  分支/标签: ${{ github.ref }}"
+                  echo "  提交: ${{ github.sha }}"
+                  echo ""
+                  echo "变更情况:"
+                  echo "  Layer: ${{ needs.detect-changes.outputs.layer_changed }}"
+                  echo "  Console: ${{ needs.detect-changes.outputs.console_changed }}"
+                  echo "  Miniapp: ${{ needs.detect-changes.outputs.miniapp_changed }}"
+                  echo ""
+
+            - name: 检测变更并部署到生产环境
+              run: |
+                  echo "🚀 开始部署到生产环境..."
+                  chmod +x ./deployment/ci-deploy.sh
+                  ./deployment/ci-deploy.sh
+              env:
+                  STAGE: prod
+                  SERVERLESS_PLATFORM_VENDOR: tencent
+                  # 传递变更检测结果，避免重复检测
+                  LAYER_CHANGED: ${{ needs.detect-changes.outputs.layer_changed }}
+                  CONSOLE_CHANGED: ${{ needs.detect-changes.outputs.console_changed }}
+                  MINIAPP_CHANGED: ${{ needs.detect-changes.outputs.miniapp_changed }}
+                  # 腾讯云凭证（生产环境）
+                  TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID_PROD }}
+                  TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY_PROD }}
+
+            - name: 更新生产部署标签
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  # 创建/更新 latest-prod tag（强制覆盖）
+                  git tag -f latest-prod -m "🚀 Deployed to PRODUCTION environment
+
+                  Commit: ${{ github.sha }}
+                  Deployed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+                  Deployed by: ${{ github.actor }}
+                  Workflow: ${{ github.run_id }}
+
+                  Changes:
+                  - Console: ${{ needs.detect-changes.outputs.console_changed }}
+                  - Miniapp: ${{ needs.detect-changes.outputs.miniapp_changed }}
+                  - Layer: ${{ needs.detect-changes.outputs.layer_changed }}"
+
+                  git push -f origin latest-prod
+
+                  echo "✅ 生产部署标签已更新: latest-prod → ${{ github.sha }}"
+
+            - name: 输出部署结果
+              run: |
+                  echo "🎉 生产环境部署完成！"
+                  echo "📌 Commit: ${{ github.sha }}"
+                  echo "🏷️  Tag: latest-prod"
+                  echo "查看部署状态: ${{ env.TENCENT_CONSOLE_URL }}"
+                  echo ""
+                  echo "💡 查看部署历史:"
+                  echo "   - 当前状态: git fetch --tags && git log --oneline --decorate -10"
+                  echo "   - 环境差异: git log latest-prod..latest-dev --oneline"
+                  echo "   - 部署历史: git reflog show latest-prod -10"
+                  echo ""
+                  echo "⚠️  请及时验证生产环境功能是否正常"

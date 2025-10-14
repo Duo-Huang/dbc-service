@@ -51,6 +51,10 @@ lerna-debug.log*
 serverless_package/
 deployment_temp/
 
+# Layer build temp
+deployment/layers/dep/temp/
+deployment/layers/dep/node_modules/
+
 # Runtime data
 pids
 *.pid
