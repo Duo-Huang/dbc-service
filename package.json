@@ -17,7 +17,7 @@
         "build": "concurrently \"pnpm:build:console\" \"pnpm:build:miniapp\"",
         "build:console": "cross-env NODE_ENV=production nest build console --builder webpack",
         "build:miniapp": "cross-env NODE_ENV=production nest build miniapp --builder webpack",
-        "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+        "format": "prettier --write \"**/*.{ts,js,mjs,json,yaml,yml,md}\"",
         "start:console": "cross-env NODE_ENV=development nest start console",
         "start:dev:console": "cross-env NODE_ENV=development nest start console --watch",
         "start:debug:console": "cross-env NODE_ENV=development nest start console --debug --watch",
