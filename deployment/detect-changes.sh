@@ -24,6 +24,16 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
+# 检查 jq 是否安装
+if ! command -v jq &> /dev/null; then
+    echo "错误: 未安装 jq 工具"
+    echo "请先安装 jq:"
+    echo "  macOS:   brew install jq"
+    echo "  Ubuntu:  sudo apt-get install jq"
+    echo "  CentOS:  sudo yum install jq"
+    exit 1
+fi
+
 # 初始化变量（仅检测变更状态）
 LAYER_CHANGED=false
 SHARED_CHANGED=false
@@ -41,7 +51,10 @@ else
     # 1. 检查 Layer 是否需要更新（依赖变更）
     echo ""
     echo "检查依赖变更..."
-    if git diff HEAD~1 HEAD package.json 2>/dev/null | grep -q '^+.*"dependencies"\|^-.*"dependencies"'; then
+    # 使用 jq 精确比较 dependencies 字段
+    DEPS_OLD=$(git show HEAD~1:package.json 2>/dev/null | jq -S '.dependencies' 2>/dev/null)
+    DEPS_NEW=$(git show HEAD:package.json 2>/dev/null | jq -S '.dependencies' 2>/dev/null)
+    if [ "$DEPS_OLD" != "$DEPS_NEW" ]; then
         echo "  ✓ dependencies 字段有变更"
         LAYER_CHANGED=true
     else
@@ -52,10 +65,10 @@ else
     echo ""
     echo "检查共享代码变更..."
     if git diff HEAD~1 HEAD --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|nest-cli\.json|tsconfig.*\.json|deployment/)'; then
-        echo "  ✓ 共享代码有变更 (libs/, config/ 等)"
+        echo "  ✓ 共享代码有变更 (libs/, config/, webpack.config.js, nest-cli.json, tsconfig.*.json, deployment/)"
         SHARED_CHANGED=true
     else
-        echo "  - 共享代码无变更"
+        echo "  - 共享代码无变更 (libs/, config/, webpack.config.js, nest-cli.json, tsconfig.*.json, deployment/)"
     fi
 
     # 3. 检查 Console 应用变更（包含 shared 影响）
