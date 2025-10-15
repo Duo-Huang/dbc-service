@@ -217,7 +217,7 @@ inputs:
     src: ./node_modules
     targetDir: /node_modules
     runtimes:
-        - Nodejs22.20.0
+        - Nodejs20.19
     description: DBC 项目生产依赖 Layer
     version: 1 # 自动递增
 ```
@@ -238,7 +238,7 @@ inputs:
         exclude:
             - .env
     handler: scf_bootstrap
-    runtime: Nodejs22.20.0
+    runtime: Nodejs20.19
     region: ap-chengdu
     memorySize: 512
     timeout: 30

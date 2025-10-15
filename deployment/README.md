@@ -195,7 +195,7 @@ export CONSOLE_SERVER_PORT=9000
 
 # 启动 NestJS 应用
 # 使用云函数标准 Node.js 环境路径
-SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/console/main.js
+SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/console/main.js
 ```
 
 **Miniapp 应用启动脚本** (`miniapp/scf_bootstrap`)：
@@ -208,14 +208,14 @@ export NODE_ENV=production
 export MINIAPP_SERVER_PORT=9000
 
 # 启动 NestJS 应用
-SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/miniapp/main.js
+SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/miniapp/main.js
 ```
 
 **关键配置：**
 
 - 监听端口：`9000`（Web Function 标准端口）
 - 监听地址：`0.0.0.0`（在代码中配置）
-- Node.js 路径：`/var/lang/node22.20.0/bin/node`（云函数标准路径）
+- Node.js 路径：`/var/lang/node20.19.0/bin/node`（云函数标准路径）
 
 ---
 
@@ -264,7 +264,7 @@ export YOUR_ENV_VAR=value
 ### 应用无法启动
 
 1. 检查 `scf_bootstrap` 脚本权限（必须是 777 或 755）
-2. 确认 Node.js 版本路径正确（`/var/lang/node22.20.0/bin/node`）
+2. 确认 Node.js 版本路径正确（`/var/lang/node20.19/bin/node`）
 3. 检查环境变量配置
 4. 查看云函数日志获取详细错误信息
 5. 确认 `node_modules` 已包含在部署包中

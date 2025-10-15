@@ -14,7 +14,7 @@ inputs:
         src: ../../dist/apps/console
         exclude:
             - .env
-    runtime: Nodejs22.20
+    runtime: Nodejs20.19
     region: ap-chengdu
     memorySize: 512
     timeout: 30

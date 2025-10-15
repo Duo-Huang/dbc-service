@@ -9,5 +9,5 @@ export MINIAPP_SERVER_PORT=9000
 
 # 启动 NestJS 应用
 # 使用云函数标准 Node.js 环境路径
-SERVERLESS=1 /var/lang/node22.20.0/bin/node ./dist/apps/miniapp/main.js
+SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/miniapp/main.js
 
