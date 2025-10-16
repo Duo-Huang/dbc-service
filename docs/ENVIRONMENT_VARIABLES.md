@@ -8,10 +8,84 @@
 
 ### GitHub Actions 部署所需
 
-| 变量名               | 必需 | 说明                | 示例值              |
-| -------------------- | ---- | ------------------- | ------------------- |
-| `TENCENT_SECRET_ID`  | ✅   | 腾讯云 API 密钥 ID  | `AKIDxxxxxxxxxxxxx` |
-| `TENCENT_SECRET_KEY` | ✅   | 腾讯云 API 密钥 Key | `xxxxxxxxxxxxxxxx`  |
+#### 腾讯云凭证
+
+| 变量名                    | 环境 | 说明                | 示例值              |
+| ------------------------- | ---- | ------------------- | ------------------- |
+| `DEV_TENCENT_SECRET_ID`   | DEV  | 腾讯云 API 密钥 ID  | `AKIDxxxxxxxxxxxxx` |
+| `DEV_TENCENT_SECRET_KEY`  | DEV  | 腾讯云 API 密钥 Key | `xxxxxxxxxxxxxxxx`  |
+| `PROD_TENCENT_SECRET_ID`  | PROD | 腾讯云 API 密钥 ID  | `AKIDxxxxxxxxxxxxx` |
+| `PROD_TENCENT_SECRET_KEY` | PROD | 腾讯云 API 密钥 Key | `xxxxxxxxxxxxxxxx`  |
+
+#### 数据库 Migration 凭证
+
+**DEV 环境：**
+
+| 变量名                    | 说明          |
+| ------------------------- | ------------- |
+| `DEV_MIGRATION_DB_HOST`   | 数据库主机    |
+| `DEV_MIGRATION_DB_PORT`   | 数据库端口    |
+| `DEV_MIGRATION_DB_NAME`   | 数据库名称    |
+| `DEV_MIGRATION_DB_SCHEMA` | 数据库 Schema |
+| `DEV_MIGRATION_USER`      | 数据库用户名  |
+| `DEV_MIGRATION_PASSWORD`  | 数据库密码    |
+
+**PROD 环境：**
+
+| 变量名                     | 说明          |
+| -------------------------- | ------------- |
+| `PROD_MIGRATION_DB_HOST`   | 数据库主机    |
+| `PROD_MIGRATION_DB_PORT`   | 数据库端口    |
+| `PROD_MIGRATION_DB_NAME`   | 数据库名称    |
+| `PROD_MIGRATION_DB_SCHEMA` | 数据库 Schema |
+| `PROD_MIGRATION_USER`      | 数据库用户名  |
+| `PROD_MIGRATION_PASSWORD`  | 数据库密码    |
+
+#### 应用运行时数据库凭证
+
+**DEV 环境 - Console 应用：**
+
+| 变量名                    | 说明          |
+| ------------------------- | ------------- |
+| `DEV_CONSOLE_DB_HOST`     | 数据库主机    |
+| `DEV_CONSOLE_DB_PORT`     | 数据库端口    |
+| `DEV_CONSOLE_DB_NAME`     | 数据库名称    |
+| `DEV_CONSOLE_DB_SCHEMA`   | 数据库 Schema |
+| `DEV_CONSOLE_DB_USER`     | 数据库用户名  |
+| `DEV_CONSOLE_DB_PASSWORD` | 数据库密码    |
+
+**DEV 环境 - Miniapp 应用：**
+
+| 变量名                    | 说明          |
+| ------------------------- | ------------- |
+| `DEV_MINIAPP_DB_HOST`     | 数据库主机    |
+| `DEV_MINIAPP_DB_PORT`     | 数据库端口    |
+| `DEV_MINIAPP_DB_NAME`     | 数据库名称    |
+| `DEV_MINIAPP_DB_SCHEMA`   | 数据库 Schema |
+| `DEV_MINIAPP_DB_USER`     | 数据库用户名  |
+| `DEV_MINIAPP_DB_PASSWORD` | 数据库密码    |
+
+**PROD 环境 - Console 应用：**
+
+| 变量名                     | 说明          |
+| -------------------------- | ------------- |
+| `PROD_CONSOLE_DB_HOST`     | 数据库主机    |
+| `PROD_CONSOLE_DB_PORT`     | 数据库端口    |
+| `PROD_CONSOLE_DB_NAME`     | 数据库名称    |
+| `PROD_CONSOLE_DB_SCHEMA`   | 数据库 Schema |
+| `PROD_CONSOLE_DB_USER`     | 数据库用户名  |
+| `PROD_CONSOLE_DB_PASSWORD` | 数据库密码    |
+
+**PROD 环境 - Miniapp 应用：**
+
+| 变量名                     | 说明          |
+| -------------------------- | ------------- |
+| `PROD_MINIAPP_DB_HOST`     | 数据库主机    |
+| `PROD_MINIAPP_DB_PORT`     | 数据库端口    |
+| `PROD_MINIAPP_DB_NAME`     | 数据库名称    |
+| `PROD_MINIAPP_DB_SCHEMA`   | 数据库 Schema |
+| `PROD_MINIAPP_DB_USER`     | 数据库用户名  |
+| `PROD_MINIAPP_DB_PASSWORD` | 数据库密码    |
 
 ### GitHub Actions 自动提供
 
@@ -48,32 +122,80 @@
 
 ### 1. GitHub Web 界面配置（GitHub Actions）
 
-#### 步骤
+#### 推荐方式：使用 Environment Secrets
 
-1. **进入仓库设置**
+1. **创建环境**
 
     ```
-    你的仓库 → Settings → Secrets and variables → Actions
+    你的仓库 → Settings → Environments
     ```
 
-2. **点击 "New repository secret"**
+2. **创建 DEV 环境**
+    - 点击 "New environment"
+    - Name: `dev`
+    - 点击 "Configure environment"
 
-3. **添加腾讯云密钥**
+3. **添加 DEV 环境变量**
 
-    **Secret 1: TENCENT_SECRET_ID**
-    - Name: `TENCENT_SECRET_ID`
-    - Secret: 粘贴你的腾讯云 SecretId
-    - 点击 "Add secret"
+    在 "Environment secrets" 部分，添加以下 secrets：
 
-    **Secret 2: TENCENT_SECRET_KEY**
-    - Name: `TENCENT_SECRET_KEY`
-    - Secret: 粘贴你的腾讯云 SecretKey
-    - 点击 "Add secret"
+    **腾讯云凭证：**
+    - `DEV_TENCENT_SECRET_ID`
+    - `DEV_TENCENT_SECRET_KEY`
 
-4. **验证配置**
-    - 在 "Actions secrets" 页面应该看到两个 secret
-    - ✅ `TENCENT_SECRET_ID`
-    - ✅ `TENCENT_SECRET_KEY`
+    **Migration 数据库：**
+    - `DEV_MIGRATION_DB_HOST`
+    - `DEV_MIGRATION_DB_PORT`
+    - `DEV_MIGRATION_DB_NAME`
+    - `DEV_MIGRATION_DB_SCHEMA`
+    - `DEV_MIGRATION_USER`
+    - `DEV_MIGRATION_PASSWORD`
+
+    **Console 应用数据库：**
+    - `DEV_CONSOLE_DB_HOST`
+    - `DEV_CONSOLE_DB_PORT`
+    - `DEV_CONSOLE_DB_NAME`
+    - `DEV_CONSOLE_DB_SCHEMA`
+    - `DEV_CONSOLE_DB_USER`
+    - `DEV_CONSOLE_DB_PASSWORD`
+
+    **Miniapp 应用数据库：**
+    - `DEV_MINIAPP_DB_HOST`
+    - `DEV_MINIAPP_DB_PORT`
+    - `DEV_MINIAPP_DB_NAME`
+    - `DEV_MINIAPP_DB_SCHEMA`
+    - `DEV_MINIAPP_DB_USER`
+    - `DEV_MINIAPP_DB_PASSWORD`
+
+4. **创建 PROD 环境**
+    - 返回 Environments，点击 "New environment"
+    - Name: `prod`
+    - 点击 "Configure environment"
+    - （可选）启用 "Required reviewers" 添加部署审批
+
+5. **添加 PROD 环境变量**
+
+    在 "Environment secrets" 部分，添加以下 secrets（将 `DEV_` 替换为 `PROD_`）：
+
+    **腾讯云凭证：**
+    - `PROD_TENCENT_SECRET_ID`
+    - `PROD_TENCENT_SECRET_KEY`
+
+    **Migration 数据库：**
+    - `PROD_MIGRATION_DB_HOST`, `PROD_MIGRATION_DB_PORT`, `PROD_MIGRATION_DB_NAME`, etc.
+
+    **Console 应用数据库：**
+    - `PROD_CONSOLE_DB_HOST`, `PROD_CONSOLE_DB_PORT`, `PROD_CONSOLE_DB_NAME`, etc.
+
+    **Miniapp 应用数据库：**
+    - `PROD_MINIAPP_DB_HOST`, `PROD_MINIAPP_DB_PORT`, `PROD_MINIAPP_DB_NAME`, etc.
+
+#### 优势
+
+- ✅ **环境隔离** - DEV 和 PROD 凭证分离
+- ✅ **安全性** - 可以为 PROD 添加审批流程
+- ✅ **可追溯** - 每次部署可以看到使用的环境
+- ✅ **易管理** - 环境变量分组管理
 
 #### 获取腾讯云密钥
 

@@ -15,21 +15,27 @@ inputs:
         exclude:
             - .env
     runtime: Nodejs20.19
-    region: ap-chengdu
+    region: ${{ env:REGION }}
     memorySize: 512
     timeout: 30
     environment:
         variables:
             NODE_ENV: production
             MINIAPP_SERVER_PORT: 9000
+            MINIAPP_DB_HOST: ${{ env:MINIAPP_DB_HOST }}
+            MINIAPP_DB_PORT: ${{ env:MINIAPP_DB_PORT }}
+            MINIAPP_DB_NAME: ${{ env:MINIAPP_DB_NAME }}
+            MINIAPP_DB_SCHEMA: ${{ env:MINIAPP_DB_SCHEMA }}
+            MINIAPP_DB_USER: ${{ env:MINIAPP_DB_USER }}
+            MINIAPP_DB_PASSWORD: ${{ env:MINIAPP_DB_PASSWORD }}
     layers:
-        - name: dbc-deps-layer
-          version: 1
+        - name: ${output:${stage}:${app}:dbc-deps-layer.name}
+          version: ${output:${stage}:${app}:dbc-deps-layer.version}
     events:
         - http:
               parameters:
                   netConfig:
-                  enableIntranet: true
-                  enableExtranet: true
+                      enableIntranet: true
+                      enableExtranet: true
                   qualifier: $DEFAULT
                   authType: NONE

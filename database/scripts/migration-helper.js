@@ -10,7 +10,7 @@ const argv = process.argv.slice(2); // [cmd, name, ...maybeTypeormArgs/--prod]
 const cmd = argv[0];
 let name = argv[1];
 
-const isProd = argv.includes('--prod');
+const isProd = argv.includes('--prod'); // 是否是生产环境模式(非local, 都是生产环境模式, 用于加载production.yaml的配置, 各个部署环境会通过环境变量覆盖production.yaml的配置)
 const NODE_ENV = isProd ? 'production' : 'development';
 
 const NODE_CONFIG_DIR = path.resolve(__dirname, '../config');

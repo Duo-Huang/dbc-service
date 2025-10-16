@@ -4,7 +4,9 @@
 # 检测代码变更状态，不做决策，决策由调用者完成
 #
 # 环境变量:
-#   FORCE_BUILD=true|1  - 跳过变更检测，强制标记所有为已变更
+#   FORCE_BUILD=true|1    - 跳过变更检测，强制标记所有为已变更
+#   BASE_TAG              - 基准 tag（用于 tag-based 检测）
+#   TARGET_REF            - 目标 ref（用于 tag-based 检测）
 #
 # 输出变量:
 #   LAYER_CHANGED=true|false      - dependencies 是否变更
@@ -48,12 +50,72 @@ if [ "$FORCE_BUILD" = "true" ] || [ "$FORCE_BUILD" = "1" ]; then
     CONSOLE_CHANGED=true
     MINIAPP_CHANGED=true
 else
+    # 确定比对基准和目标
+    if [ -n "$BASE_TAG" ] && [ -n "$TARGET_REF" ]; then
+        # Tag-based 模式（CI 推荐）
+        echo ""
+        echo "🔍 使用 Tag-based 变更检测"
+        echo "  Base: $BASE_TAG"
+        echo "  Target: $TARGET_REF"
+
+        # 检查 BASE_TAG 是否存在
+        if ! git rev-parse "$BASE_TAG" >/dev/null 2>&1; then
+            echo ""
+            echo "⚠️  $BASE_TAG 不存在（可能是首次部署）"
+            echo "   执行全量部署"
+            LAYER_CHANGED=true
+            SHARED_CHANGED=true
+            CONSOLE_CHANGED=true
+            MINIAPP_CHANGED=true
+
+            # 输出到 GitHub Actions
+            if [ -n "$GITHUB_OUTPUT" ]; then
+                echo "layer_changed=true" >> "$GITHUB_OUTPUT"
+                echo "shared_changed=true" >> "$GITHUB_OUTPUT"
+                echo "console_changed=true" >> "$GITHUB_OUTPUT"
+                echo "miniapp_changed=true" >> "$GITHUB_OUTPUT"
+            fi
+
+            # 输出到环境变量
+            export LAYER_CHANGED
+            export SHARED_CHANGED
+            export CONSOLE_CHANGED
+            export MINIAPP_CHANGED
+
+            echo ""
+            echo "======================================"
+            echo "📊 变更检测结果:"
+            echo "======================================"
+            echo "  Layer Changed:    $LAYER_CHANGED"
+            echo "  Shared Changed:   $SHARED_CHANGED"
+            echo "  Console Changed:  $CONSOLE_CHANGED"
+            echo "  Miniapp Changed:  $MINIAPP_CHANGED"
+            echo "======================================"
+            echo ""
+            exit 0
+        fi
+
+        BASE_COMMIT=$(git rev-parse "$BASE_TAG")
+        TARGET_COMMIT=$(git rev-parse "$TARGET_REF")
+
+        echo "  Base commit: $BASE_COMMIT"
+        echo "  Target commit: $TARGET_COMMIT"
+
+        COMPARE_BASE="$BASE_COMMIT"
+        COMPARE_TARGET="$TARGET_COMMIT"
+    else
+        # Commit-based 模式（本地/向后兼容）
+        echo ""
+        echo "🔍 使用 Commit-based 变更检测 (HEAD~1 vs HEAD)"
+        COMPARE_BASE="HEAD~1"
+        COMPARE_TARGET="HEAD"
+    fi
     # 1. 检查 Layer 是否需要更新（依赖变更）
     echo ""
     echo "检查依赖变更..."
     # 使用 jq 精确比较 dependencies 字段
-    DEPS_OLD=$(git show HEAD~1:package.json 2>/dev/null | jq -S '.dependencies' 2>/dev/null)
-    DEPS_NEW=$(git show HEAD:package.json 2>/dev/null | jq -S '.dependencies' 2>/dev/null)
+    DEPS_OLD=$(git show $COMPARE_BASE:package.json 2>/dev/null | jq -S '.dependencies' 2>/dev/null)
+    DEPS_NEW=$(git show $COMPARE_TARGET:package.json 2>/dev/null | jq -S '.dependencies' 2>/dev/null)
     if [ "$DEPS_OLD" != "$DEPS_NEW" ]; then
         echo "  ✓ dependencies 字段有变更"
         LAYER_CHANGED=true
@@ -64,7 +126,7 @@ else
     # 2. 先检查共享代码变更（优先级最高，影响所有应用）
     echo ""
     echo "检查共享代码变更..."
-    if git diff HEAD~1 HEAD --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|nest-cli\.json|tsconfig.*\.json|deployment/)'; then
+    if git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|nest-cli\.json|tsconfig.*\.json|deployment/)'; then
         echo "  ✓ 共享代码有变更 (libs/, config/, webpack.config.js, nest-cli.json, tsconfig.*.json, deployment/)"
         SHARED_CHANGED=true
     else
@@ -75,7 +137,7 @@ else
     echo ""
     echo "检查 Console 应用..."
     CONSOLE_APP_CHANGED=false
-    if git diff HEAD~1 HEAD --name-only | grep -q '^apps/console/'; then
+    if git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -q '^apps/console/'; then
         echo "  ✓ Console 应用代码有变更"
         CONSOLE_APP_CHANGED=true
         CONSOLE_CHANGED=true
@@ -96,7 +158,7 @@ else
     echo ""
     echo "检查 Miniapp 应用..."
     MINIAPP_APP_CHANGED=false
-    if git diff HEAD~1 HEAD --name-only | grep -q '^apps/miniapp/'; then
+    if git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -q '^apps/miniapp/'; then
         echo "  ✓ Miniapp 应用代码有变更"
         MINIAPP_APP_CHANGED=true
         MINIAPP_CHANGED=true
@@ -111,6 +173,20 @@ else
 
     if [ "$MINIAPP_CHANGED" = "false" ]; then
         echo "  - Miniapp 无变更"
+    fi
+
+    # 5. Layer 变更影响所有应用（确保版本匹配）
+    if [ "$LAYER_CHANGED" = "true" ]; then
+        echo ""
+        echo "检查 Layer 变更影响..."
+        if [ "$CONSOLE_CHANGED" = "false" ]; then
+            echo "  ✓ Console 受 Layer 变更影响（确保版本匹配）"
+            CONSOLE_CHANGED=true
+        fi
+        if [ "$MINIAPP_CHANGED" = "false" ]; then
+            echo "  ✓ Miniapp 受 Layer 变更影响（确保版本匹配）"
+            MINIAPP_CHANGED=true
+        fi
     fi
 fi
 

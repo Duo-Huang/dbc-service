@@ -40,12 +40,5 @@ cp -r "$TEMP_DIR/node_modules" "deployment/layers/dep/"
 echo "4. 清理临时目录..."
 rm -rf "$TEMP_DIR"
 
-echo "5. 更新 Layer 版本号..."
-# 获取当前版本号并递增
-CURRENT_VERSION=$(grep 'version:' deployment/layers/dep/serverless.yml | awk '{print $2}' || echo "0")
-NEW_VERSION=$((CURRENT_VERSION + 1))
-# 跨平台兼容的 sed 写法
-sed -i.bak "s/version: .*/version: $NEW_VERSION/" deployment/layers/dep/serverless.yml && rm -f deployment/layers/dep/serverless.yml.bak
-
-echo "✅ Layer 构建完成，版本: $NEW_VERSION"
+echo "5. Layer 构建完成，版本号将由系统自动生成"
 echo "======================================"

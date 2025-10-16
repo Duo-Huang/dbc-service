@@ -43,9 +43,9 @@ export const AppDataSource = new DataSource({
     migrationsRun: false, // app启动时不自动运行 migration，需要手动执行
     synchronize: false, // 不自动同步(entity -> db)，使用 migration 管理
 
-    // 日志
-    logging: true,
-
+    // 日志配置
+    // 生产环境：只记录错误（保护敏感信息）
+    logging: process.env.NODE_ENV === 'production' ? ['warn', 'error'] : 'all',
     // PostgreSQL 连接池配置
     extra: {
         max: 10,

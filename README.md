@@ -105,11 +105,38 @@ pnpm lint
 ### 架构特点
 
 - ✅ **Layer 管理依赖** - node_modules 独立管理，部署包更小
-- ✅ **智能变更检测** - 自动检测代码变更，按需部署
-- ✅ **自动化部署** - 使用 SCF CLI 一键部署
-- ✅ **版本自动同步** - Layer 版本自动更新
+- ✅ **智能变更检测** - 基于 tag 的变更检测，精准可靠
+- ✅ **手动触发部署** - 三个独立 workflow，避免意外部署
+- ✅ **版本一致性** - PROD 只能从 `dev-latest` 部署
+- ✅ **数据库 Migration** - 部署前自动运行数据库迁移
+- ✅ **单次回滚** - PROD 支持回滚到上一版本
 
-### 快速部署
+### GitHub Actions 部署（推荐）
+
+本项目提供三个手动触发的 workflow：
+
+- **Deploy to DEV** - 部署到 DEV 环境，支持从任意分支部署
+- **Deploy to PROD** - 从 `dev-latest` 部署到生产，需要确认码
+- **Rollback PROD** - 回滚生产环境到上一版本
+
+**快速开始：**
+
+```bash
+# 1. 在 GitHub Actions 页面选择对应的 workflow
+# 2. 点击 "Run workflow"
+# 3. 填写必要参数（如确认码）
+# 4. 等待部署完成
+```
+
+**Tag 管理：**
+
+- `dev-latest` - DEV 当前版本
+- `prod-latest` - PROD 当前版本
+- `prod-prev` - PROD 上一版本（用于回滚）
+
+📖 **详细 CI/CD 流程和策略**：[CI_TEST_STRATEGY.md](docs/CI_TEST_STRATEGY.md)
+
+### 本地部署
 
 ```bash
 # 1. 构建项目
@@ -131,7 +158,9 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 **📖 详细部署文档**:
 
 - [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 完整部署流程和说明
-- [部署配置](deployment/README.md) - 脚本使用和配置
+- [CI/CD 策略](docs/CI_TEST_STRATEGY.md) - 测试和部署策略
+- [环境变量配置](docs/ENVIRONMENT_VARIABLES.md) - GitHub 和本地环境变量配置
+- [部署脚本](deployment/README.md) - 脚本使用和配置
 - [官方文档](https://cloud.tencent.com/document/product/1154/59447) - 腾讯云 SCF CLI 文档
 
 ---

@@ -15,16 +15,22 @@ inputs:
         exclude:
             - .env
     runtime: Nodejs20.19
-    region: ap-chengdu
+    region: ${{ env:REGION }}
     memorySize: 512
     timeout: 30
     environment:
         variables:
             NODE_ENV: production
             CONSOLE_SERVER_PORT: 9000
+            CONSOLE_DB_HOST: ${{ env:CONSOLE_DB_HOST }}
+            CONSOLE_DB_PORT: ${{ env:CONSOLE_DB_PORT }}
+            CONSOLE_DB_NAME: ${{ env:CONSOLE_DB_NAME }}
+            CONSOLE_DB_SCHEMA: ${{ env:CONSOLE_DB_SCHEMA }}
+            CONSOLE_DB_USER: ${{ env:CONSOLE_DB_USER }}
+            CONSOLE_DB_PASSWORD: ${{ env:CONSOLE_DB_PASSWORD }}
     layers:
-        - name: dbc-deps-layer
-          version: 1
+        - name: ${output:${stage}:${app}:dbc-deps-layer.name}
+          version: ${output:${stage}:${app}:dbc-deps-layer.version}
     events:
         - http:
               parameters:

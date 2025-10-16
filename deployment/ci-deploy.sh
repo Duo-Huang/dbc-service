@@ -82,13 +82,7 @@ if [ "$LAYER_CHANGED" = "true" ]; then
     echo "🚀 部署 Layer 到 $STAGE 环境..."
     scf deploy --stage $STAGE
     cd ../../..
-
-    # 更新服务配置中的 Layer 版本
-    NEW_VERSION=$(grep 'version:' deployment/layers/dep/serverless.yml | awk '{print $2}')
-    echo "🔄 更新服务配置中的 Layer 版本: $NEW_VERSION"
-    sed -i "s/version: [0-9]*/version: $NEW_VERSION/" deployment/console/serverless.yml
-    sed -i "s/version: [0-9]*/version: $NEW_VERSION/" deployment/miniapp/serverless.yml
-    echo "✅ Layer 部署完成，版本: $NEW_VERSION"
+    echo "✅ Layer 部署完成，版本号由系统自动生成"
 else
     echo "✅ Layer 无需更新，跳过"
 fi

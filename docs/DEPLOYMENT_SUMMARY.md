@@ -141,7 +141,7 @@ pnpm build
 # 2. 智能检测并部署到 DEV 环境（默认）
 ./deployment/ci-deploy.sh
 
-# 3. 部署到 PRODUCTION 环境
+# 3. 部署到 PRODUCTION 环境 [禁止本地操作生产]
 STAGE=prod ./deployment/ci-deploy.sh
 
 # 脚本会自动:
@@ -170,33 +170,25 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 # - Miniapp
 ```
 
-#### 方式三：GitHub Actions 自动部署（推荐）
+#### 方式三：GitHub Actions 自动化部署（推荐）
 
-推送代码到 `main` 或 `master` 分支，GitHub Actions 会自动：
+本项目采用手动触发的部署策略，通过三个独立的 workflow 管理部署和回滚。
 
-**阶段 1：变更检测**
+**Workflows：**
 
-- 使用 `jq` 精确检测 dependencies 变更
-- 检测共享代码和应用变更
+- `deploy-dev.yml` - DEV 环境部署
+- `deploy-prod.yml` - 生产环境部署（从 `dev-latest` 部署）
+- `rollback-prod.yml` - 生产环境回滚
 
-**阶段 2：并行构建和测试**
+**核心特性：**
 
-- 构建项目（生成部署产物并上传 artifact）
-- Lint 代码检查
-- 运行单元测试
+- ✅ 手动触发，避免意外部署
+- ✅ 基于 tag 的变更检测（`dev-latest`, `prod-latest`, `prod-prev`）
+- ✅ 版本一致性（PROD 只能从 `dev-latest` 部署）
+- ✅ 自动运行数据库 migration
+- ✅ 支持单次回滚
 
-**阶段 3：按需 E2E 测试**
-
-- 只测试有变更的应用
-
-**阶段 4：智能部署**
-
-- 接收阶段 1 的检测结果（避免重复检测）
-- 下载构建产物（复用，不重复构建）
-- 根据变更检测结果部署相应组件
-- 自动更新 Layer 版本
-- **DEV 部署**：push to main/master 自动部署
-- **PRODUCTION 部署**：push tag v\* 或手动触发
+📖 **详细的 CI/CD 流程和策略请查看：[CI_TEST_STRATEGY.md](./CI_TEST_STRATEGY.md)**
 
 ---
 
@@ -318,19 +310,46 @@ ERR_PNPM_NO_GLOBAL_BIN_DIR  Unable to find the global bin directory
 
 ### GitHub Actions 所需变量
 
-| 变量                     | 说明                        | 用途         | 配置位置       |
-| ------------------------ | --------------------------- | ------------ | -------------- |
-| `TENCENT_SECRET_ID`      | 腾讯云 API 密钥 ID          | DEV 环境部署 | GitHub Secrets |
-| `TENCENT_SECRET_KEY`     | 腾讯云 API 密钥 Key         | DEV 环境部署 | GitHub Secrets |
-| `TENCENT_SECRET_ID_PRO`  | 腾讯云 API 密钥 ID（生产）  | 生产环境部署 | GitHub Secrets |
-| `TENCENT_SECRET_KEY_PRO` | 腾讯云 API 密钥 Key（生产） | 生产环境部署 | GitHub Secrets |
+#### 腾讯云部署凭证
 
-**配置方法**：仓库 Settings → Secrets and variables → Actions → New repository secret
+| 变量                      | 说明                        | 用途         | 配置位置       |
+| ------------------------- | --------------------------- | ------------ | -------------- |
+| `DEV_TENCENT_SECRET_ID`   | 腾讯云 API 密钥 ID (DEV)    | DEV 环境部署 | GitHub Secrets |
+| `DEV_TENCENT_SECRET_KEY`  | 腾讯云 API 密钥 Key (DEV)   | DEV 环境部署 | GitHub Secrets |
+| `PROD_TENCENT_SECRET_ID`  | 腾讯云 API 密钥 ID（生产）  | 生产环境部署 | GitHub Secrets |
+| `PROD_TENCENT_SECRET_KEY` | 腾讯云 API 密钥 Key（生产） | 生产环境部署 | GitHub Secrets |
+
+#### 数据库 Migration 凭证
+
+##### DEV 环境
+
+| 变量                      | 说明          | 用途          |
+| ------------------------- | ------------- | ------------- |
+| `DEV_MIGRATION_DB_HOST`   | 数据库主机    | DEV Migration |
+| `DEV_MIGRATION_DB_PORT`   | 数据库端口    | DEV Migration |
+| `DEV_MIGRATION_DB_NAME`   | 数据库名称    | DEV Migration |
+| `DEV_MIGRATION_DB_SCHEMA` | 数据库 Schema | DEV Migration |
+| `DEV_MIGRATION_USER`      | 数据库用户名  | DEV Migration |
+| `DEV_MIGRATION_PASSWORD`  | 数据库密码    | DEV Migration |
+
+##### PROD 环境
+
+| 变量                       | 说明          | 用途           |
+| -------------------------- | ------------- | -------------- |
+| `PROD_MIGRATION_DB_HOST`   | 数据库主机    | PROD Migration |
+| `PROD_MIGRATION_DB_PORT`   | 数据库端口    | PROD Migration |
+| `PROD_MIGRATION_DB_NAME`   | 数据库名称    | PROD Migration |
+| `PROD_MIGRATION_DB_SCHEMA` | 数据库 Schema | PROD Migration |
+| `PROD_MIGRATION_USER`      | 数据库用户名  | PROD Migration |
+| `PROD_MIGRATION_PASSWORD`  | 数据库密码    | PROD Migration |
+
+**配置方法**：仓库 Settings → Environments → Click relavant env and set
 
 **环境隔离：**
 
-- DEV 和 PRODUCTION 使用不同的腾讯云凭证
+- DEV 和 PRODUCTION 使用不同的腾讯云凭证和数据库
 - 推荐使用不同的子账号，配置不同的权限
+- 数据库建议使用不同的实例或 schema 隔离
 
 ### 应用环境变量
 
@@ -350,16 +369,43 @@ environment:
 
 ## 📊 变更检测逻辑
 
+### 两种检测模式
+
+#### 1. Tag-based 模式（CI 推荐）
+
+通过环境变量 `BASE_TAG` 和 `TARGET_REF` 指定比对基准：
+
+```bash
+# DEV 部署：比对 dev-latest vs 当前分支
+BASE_TAG=dev-latest TARGET_REF=master ./detect-changes.sh
+
+# PROD 部署：比对 prod-latest vs dev-latest
+BASE_TAG=prod-latest TARGET_REF=dev-latest ./detect-changes.sh
+```
+
+**首次部署处理：**
+
+- 如果 `BASE_TAG` 不存在（如首次部署）
+- 自动标记全量部署（所有组件 `CHANGED=true`）
+- 不会报错，优雅处理
+
+#### 2. Commit-based 模式（本地兼容）
+
+不提供 `BASE_TAG` 时，自动使用传统方式：
+
+```bash
+# 比对 HEAD~1 vs HEAD
+./detect-changes.sh
+```
+
 ### Layer 变更检测（精确到字段）
 
 使用 `jq` 工具**精确比较** `package.json` 中的 `dependencies` 字段：
 
 ```bash
-# 提取前一个 commit 的 dependencies
-DEPS_OLD=$(git show HEAD~1:package.json | jq -S '.dependencies')
-
-# 提取当前 commit 的 dependencies
-DEPS_NEW=$(git show HEAD:package.json | jq -S '.dependencies')
+# Tag-based 模式
+DEPS_OLD=$(git show $COMPARE_BASE:package.json | jq -S '.dependencies')
+DEPS_NEW=$(git show $COMPARE_TARGET:package.json | jq -S '.dependencies')
 
 # 精确比较
 if [ "$DEPS_OLD" != "$DEPS_NEW" ]; then
@@ -378,18 +424,23 @@ fi
 
 ```bash
 # 检测共享代码（优先级最高）
-git diff HEAD~1 HEAD --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|...)'
+git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|...)'
 
-# Console 变更 = apps/console/ 变更 OR 共享代码变更
-# Miniapp 变更 = apps/miniapp/ 变更 OR 共享代码变更
+# Console 变更 = apps/console/ 变更 OR 共享代码变更 OR Layer 变更
+# Miniapp 变更 = apps/miniapp/ 变更 OR 共享代码变更 OR Layer 变更
 ```
 
 **变更检测输出：**
 
 - `LAYER_CHANGED`: dependencies 是否变更
 - `SHARED_CHANGED`: 共享代码是否变更
-- `CONSOLE_CHANGED`: Console 是否需要部署（已包含 shared 影响）
-- `MINIAPP_CHANGED`: Miniapp 是否需要部署（已包含 shared 影响）
+- `CONSOLE_CHANGED`: Console 是否需要部署（已包含 shared 和 layer 影响）
+- `MINIAPP_CHANGED`: Miniapp 是否需要部署（已包含 shared 和 layer 影响）
+
+**变更影响关系：**
+
+- `SHARED_CHANGED=true` → 强制 `CONSOLE_CHANGED=true`, `MINIAPP_CHANGED=true`
+- `LAYER_CHANGED=true` → 强制 `CONSOLE_CHANGED=true`, `MINIAPP_CHANGED=true`（确保版本匹配）
 
 ### 智能决策
 
@@ -404,7 +455,7 @@ git diff HEAD~1 HEAD --name-only | grep -qE '^(libs/|config/|webpack\.config\.js
 
 - **jq 工具**: 脚本启动时会检查，未安装会报错
 - **pnpm-lock.yaml**: 强制使用 pnpm 管理依赖
-- **Git 历史**: GitHub Actions 需要 `fetch-depth: 2`
+- **Git 历史**: GitHub Actions 需要 `fetch-depth: 0`（需要完整历史以访问 tags）
 
 ---
 
@@ -438,16 +489,26 @@ cat deployment/layers/dep/serverless.yml | grep version
 3. **查看日志**：`scf deploy` 会输出详细错误信息
 4. **强制重新部署**：`FORCE_BUILD=true ./ci-deploy.sh`
 
-### Q5: 如何回滚？
+### Q5: 如何回滚生产环境？
+
+**推荐方式（GitHub Actions）：**
+
+在 GitHub Actions 页面手动触发 `Rollback PROD` workflow，输入确认码 `ROLLBACK` 和回滚原因。
+
+**本地方式：**
 
 ```bash
-# 1. 回滚代码到上一个版本
+# 1. 切换到上一个版本
 git checkout <previous-commit>
 
-# 2. 重新构建和部署
+# 2. 重新构建
 pnpm build
-FORCE_BUILD=true ./deployment/ci-deploy.sh
+
+# 3. 强制全量部署到生产 [禁止本地操作生产]
+STAGE=prod FORCE_BUILD=true ./deployment/ci-deploy.sh
 ```
+
+📖 详细回滚策略请查看：[CI_TEST_STRATEGY.md](./CI_TEST_STRATEGY.md)
 
 ### Q6: Layer 版本管理策略？
 

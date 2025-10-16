@@ -9,7 +9,7 @@ stage: dev
 
 inputs:
     name: dbc-deps-layer
-    region: ap-chengdu
+    region: ${{ env:REGION }}
     src: ./node_modules
     targetDir: /node_modules
     runtimes:

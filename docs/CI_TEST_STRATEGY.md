@@ -1,20 +1,71 @@
-# CI/CD 测试策略文档
+# CI/CD 测试和部署策略文档
 
 ## 概述
 
-本项目采用**智能按需测试**策略，既保证代码质量，又优化 CI/CD 运行时间。
+本项目采用**手动触发、基于 tag 的部署策略**，通过三个独立的 workflow 管理部署和回滚，所有测试在部署前执行，确保代码质量和生产环境安全。
+
+## 部署策略
+
+### 核心原则
+
+1. **手动部署**：所有部署均手动触发，避免意外部署
+2. **Tag-based 版本管理**：使用移动 tag 追踪 DEV/PROD 部署版本
+3. **版本一致性**：PROD 只能从 `dev-latest` 部署，确保部署的是经过 DEV 验证的版本
+4. **智能变更检测**：基于 tag 比对，首次部署自动全量部署
+5. **数据库 Migration 集成**：部署前自动运行数据库迁移
+6. **单次回滚**：PROD 支持回滚到上一版本，简化管理复杂度
+
+### 三个独立 Workflow
+
+#### 1. DEV 环境部署 (`deploy-dev.yml`)
+
+- **触发**：手动触发
+- **部署源**：master 或指定分支（支持 hotfix）
+- **变更检测**：基于 `dev-latest` tag
+- **部署流程**：变更检测 → 并行测试 → Migration → 部署 → 更新 `dev-latest` tag
+
+#### 2. PROD 环境部署 (`deploy-prod.yml`)
+
+- **触发**：手动触发（需输入确认码 `DEPLOY`）
+- **部署源**：仅 `dev-latest` tag
+- **变更检测**：基于 `prod-latest` tag
+- **部署流程**：验证 → 变更检测 → 重新测试 → Migration → 部署 → 更新 tags
+- **Tags 更新**：
+    - 非首次：`prod-prev` ← 当前 `prod-latest`
+    - `prod-latest` ← `dev-latest`
+
+#### 3. PROD 环境回滚 (`rollback-prod.yml`)
+
+- **触发**：手动触发（需输入确认码 `ROLLBACK` 和回滚原因）
+- **前提**：`prod-prev` tag 必须存在
+- **回滚流程**：验证 → 智能 Migration 检测 → 回退数据库（如需） → 回滚服务 → 更新 tags
+- **限制**：只支持一次回滚，回滚后 `prod-prev` 被删除
+
+### Tag 策略
+
+| Tag           | 说明                    | 生命周期                    |
+| ------------- | ----------------------- | --------------------------- |
+| `dev-latest`  | DEV 当前部署版本        | 每次 DEV 部署后更新         |
+| `prod-latest` | PROD 当前部署版本       | 每次 PROD 部署后更新        |
+| `prod-prev`   | PROD 上一版本（回滚用） | PROD 部署前保存，回滚后删除 |
+
+**特性：**
+
+- 使用移动 tag（固定名称，`git push -f` 更新位置）
+- 通过 tag message 记录部署信息
+- 使用 `git reflog show <tag>` 查看历史
 
 ## 测试策略
 
 ### 1. 代码检查（Lint）
 
-- **触发时机**: 每次 push 和 PR
+- **触发时机**: 每次部署前
 - **执行范围**: 全部代码
 - **原因**: 快速执行，保证代码规范
 
 ### 2. 单元测试
 
-- **触发时机**: 每次 push 和 PR
+- **触发时机**: 每次部署前
 - **执行范围**: 全部测试
 - **原因**:
     - 单元测试快速（通常 < 10 秒）
@@ -52,15 +103,19 @@
 
 ## CI/CD 工作流程
 
-### Pull Request
+### DEV 环境部署
 
 ```
-PR 创建/更新
+手动触发 deploy-dev
   ↓
-第一阶段：变更检测
+指定部署分支（默认 master）
+  ↓
+第一阶段：变更检测（基于 dev-latest tag）
+  ├─ 首次部署？→ 全量部署标记
+  └─ 非首次 → 检测变更
   ↓
 第二阶段：并行执行（最大化并行）
-  ├─ 构建项目（检查 TS 类型和构建错误）
+  ├─ 构建项目（检查 TS 类型和构建错误，生成产物）
   ├─ Lint（代码规范检查）
   └─ 单元测试（功能验证）
   ↓
@@ -68,29 +123,76 @@ PR 创建/更新
   ├─ Console E2E（如果 Console 有变更）
   └─ Miniapp E2E（如果 Miniapp 有变更）
   ↓
-所有测试通过 → PR 可合并
-```
-
-### Master 分支
-
-```
-代码合并到 master
+第四阶段：数据库迁移
+  └─ 运行 migration（DEV 数据库）
   ↓
-第一阶段：变更检测
-  ↓
-第二阶段：并行执行（最大化并行）
-  ├─ 构建项目（生成部署产物）
-  ├─ Lint（代码规范检查）
-  └─ 单元测试（功能验证）
-  ↓
-第三阶段：E2E 测试（按需并行）
-  ├─ Console E2E（如果 Console 有变更）
-  └─ Miniapp E2E（如果 Miniapp 有变更）
-  ↓
-所有测试通过
-  ↓
-第四阶段：部署（复用构建产物）
+第五阶段：部署
   └─ 下载构建产物并部署到腾讯云
+  ↓
+第六阶段：更新 tag
+  └─ 强制更新 dev-latest → 当前 commit
+```
+
+### PROD 环境部署
+
+```
+手动触发 deploy-prod
+  ↓
+输入确认码 DEPLOY
+  ↓
+验证条件：dev-latest tag 是否存在
+  ↓
+从 dev-latest 检出代码
+  ↓
+第一阶段：变更检测（基于 prod-latest tag）
+  ├─ 首次部署？→ 全量部署标记
+  └─ 非首次 → 检测变更
+  ↓
+第二阶段：重新验证（与 DEV 相同的测试）
+  ├─ 构建项目
+  ├─ Lint
+  ├─ 单元测试
+  ├─ Console E2E（按需）
+  └─ Miniapp E2E（按需）
+  ↓
+第三阶段：数据库迁移
+  └─ 运行 migration（PROD 数据库）
+  ↓
+第四阶段：部署
+  └─ 部署到生产环境
+  ↓
+第五阶段：更新 tags
+  ├─ 非首次：prod-prev ← 当前 prod-latest
+  └─ prod-latest ← dev-latest
+```
+
+### PROD 环境回滚
+
+```
+手动触发 rollback-prod
+  ↓
+输入确认码 ROLLBACK + 回滚原因
+  ↓
+验证条件：prod-prev tag 是否存在
+  ↓
+第一阶段：智能 Migration 检测
+  ├─ 比对 prod-prev 和 prod-latest 的 migrations/
+  ├─ 计算需要回退的 migration 数量
+  └─ 无变更？→ 跳过数据库回退
+  ↓
+第二阶段：回退数据库（如需要）
+  ├─ 从 prod-latest 检出（确保 migration 文件存在）
+  ├─ 循环执行 migration:revert
+  └─ 回退成功
+  ↓
+第三阶段：回滚服务
+  ├─ 从 prod-prev 检出
+  ├─ 重新构建
+  └─ 强制全量部署
+  ↓
+第四阶段：更新 tags
+  ├─ prod-latest ← prod-prev
+  └─ 删除 prod-prev（消耗回滚机会）
 ```
 
 ## 变更检测脚本设计原则
@@ -107,6 +209,7 @@ PR 创建/更新
   - 精确检测 dependencies 字段是否变更（使用 jq）
   - 检测共享代码是否变更
   - 检测各个应用是否变更
+  - 处理变更影响关系（shared → apps, layer → apps）
   - 输出变更状态供调用者使用
 
 调用者的职责：
@@ -114,16 +217,39 @@ PR 创建/更新
   - CI/CD 脚本根据变更状态决定部署哪些应用
 ```
 
+### 基于 Tag 的变更检测
+
+脚本支持两种模式：
+
+#### Tag-based 模式（CI 推荐）
+
+通过环境变量指定比对基准：
+
+```bash
+# DEV 部署：比对 dev-latest vs 当前分支
+BASE_TAG=dev-latest TARGET_REF=master ./detect-changes.sh
+
+# PROD 部署：比对 prod-latest vs dev-latest
+BASE_TAG=prod-latest TARGET_REF=dev-latest ./detect-changes.sh
+```
+
+#### Commit-based 模式（本地兼容）
+
+不提供环境变量时，自动回退到传统模式：
+
+```bash
+# 比对 HEAD~1 vs HEAD
+./detect-changes.sh
+```
+
 ### 精确的 Dependencies 检测
 
 脚本使用 `jq` 工具精确比较 `package.json` 中的 `dependencies` 字段：
 
 ```bash
-# 提取前一个 commit 的 dependencies
-DEPS_OLD=$(git show HEAD~1:package.json | jq -S '.dependencies')
-
-# 提取当前 commit 的 dependencies
-DEPS_NEW=$(git show HEAD:package.json | jq -S '.dependencies')
+# 使用变量（Tag-based 或 Commit-based）
+DEPS_OLD=$(git show $COMPARE_BASE:package.json | jq -S '.dependencies')
+DEPS_NEW=$(git show $COMPARE_TARGET:package.json | jq -S '.dependencies')
 
 # 精确比较（只看 dependencies，忽略 devDependencies 等）
 if [ "$DEPS_OLD" != "$DEPS_NEW" ]; then
@@ -136,11 +262,13 @@ fi
 - ✅ 只有生产依赖变更才重建 Layer（节省时间）
 - ✅ devDependencies 变更不触发 Layer 重建
 - ✅ package.json 的其他字段变更也不触发
+- ✅ 支持 tag-based 检测（更精确）
+- ✅ 首次部署自动全量部署（tag 不存在时）
 
 **前置要求：**
 
 - 必须安装 `jq` 工具（脚本启动时会检查）
-- GitHub Actions 需要 `fetch-depth: 2` 来访问 `HEAD~1`
+- GitHub Actions 需要 `fetch-depth: 0` 来访问完整 git 历史（包括 tags）
 
 ### 避免重复检测
 
@@ -178,16 +306,22 @@ fi
 
 ### 依赖关系处理
 
-检测顺序很重要！**先检测 SHARED_CHANGED**，因为它影响所有应用：
+检测顺序很重要！**先检测基础变更，再处理影响关系**：
 
 ```bash
 # 1. 检测 Layer（依赖）
-# 2. 检测 Shared（共享代码） ⚠️ 优先级最高
-# 3. 检测 Console（包含 shared 影响）
-# 4. 检测 Miniapp（包含 shared 影响）
+# 2. 检测 Shared（共享代码）
+# 3. 检测 Console（应用代码）
+# 4. 检测 Miniapp（应用代码）
+# 5. 处理变更影响关系
 
-# CONSOLE_CHANGED = (apps/console/ 有变更) OR (shared 有变更)
-# MINIAPP_CHANGED = (apps/miniapp/ 有变更) OR (shared 有变更)
+# 影响关系处理：
+# - SHARED_CHANGED=true → 强制 CONSOLE_CHANGED=true, MINIAPP_CHANGED=true
+# - LAYER_CHANGED=true → 强制 CONSOLE_CHANGED=true, MINIAPP_CHANGED=true
+
+# 最终结果：
+# CONSOLE_CHANGED = (apps/console/ 有变更) OR (shared 有变更) OR (layer 有变更)
+# MINIAPP_CHANGED = (apps/miniapp/ 有变更) OR (shared 有变更) OR (layer 有变更)
 ```
 
 这样设计的好处：
