@@ -2,9 +2,56 @@
 
 本文档详细说明项目中所需的环境变量及其配置方法。
 
----
-
 ## 📋 环境变量清单
+
+📖 **快速开始**：请参考 [README.md](../README.md) 中的快速开始部分
+
+## 🔧 配置加载机制
+
+本项目使用 `config` 包加载 YAML 配置文件，环境变量的作用机制如下：
+
+1. **YAML 配置文件**：`config/*.yaml` 文件包含各环境的默认配置
+2. **环境变量映射**：`config/custom-environment-variables.yaml` 定义环境变量到配置的映射关系
+3. **环境变量覆盖**：环境变量可以覆盖 YAML 配置中的对应值
+4. **本地开发**：复制 `.env.example` 为 `.env`，手动 `source .env` 注入环境变量到 shell
+
+**配置优先级**：环境变量 > config/\*.yaml 文件
+
+## 📋 Node.js 版本要求
+
+### 版本说明
+
+- **当前版本**：20.19.5
+- **版本来源**：腾讯云 Serverless 环境最高支持 Node.js 20.19
+- **版本管理**：腾讯云自行管理 patch 版本，无需指定具体 patch
+
+### 版本一致性要求
+
+**重要**：本地开发环境必须使用与生产环境完全一致的 Node.js 版本，确保：
+
+1. **功能一致性**：避免因版本差异导致的功能问题
+2. **依赖兼容性**：确保所有依赖包在两个环境中行为一致
+3. **部署稳定性**：减少因版本不匹配导致的部署问题
+
+### 版本检查和管理
+
+```bash
+# 检查当前 Node.js 版本
+node --version
+
+# 使用 nvm 管理 Node.js 版本
+nvm install 20.19.5
+nvm use 20.19.5
+
+# 验证版本
+node --version  # 应该输出 v20.19.5
+```
+
+### 版本升级策略
+
+- **升级条件**：仅当腾讯云 Serverless 支持更高版本时
+- **升级流程**：先确认腾讯云支持，再升级本地和 CI/CD 环境
+- **测试要求**：升级后必须进行完整的本地和部署测试
 
 ### GitHub Actions 部署所需
 
@@ -451,9 +498,77 @@ config/secrets.yaml
 
 ---
 
+## 📁 配置文件关系
+
+📖 **详细的配置管理说明**：[CONFIG.md](CONFIG.md)
+
+### 配置文件结构
+
+```
+config/
+├── custom-environment-variables.yaml  # 环境变量映射配置
+├── development.yaml                   # 开发环境默认值
+├── production.yaml                    # 生产环境默认值
+└── test.yaml                         # 测试环境默认值
+
+.env.example                          # 环境变量示例文件
+.env                                  # 本地环境变量文件 (git ignored)
+```
+
+### 配置优先级
+
+```
+环境变量 > .env 文件 > config/*.yaml 文件
+```
+
+### 使用场景
+
+- **本地开发**：复制 `.env.example` 为 `.env`，修改配置后 `source .env`
+- **CI/CD 部署**：通过 GitHub Secrets 设置环境变量
+- **生产环境**：通过云平台环境变量设置
+
+---
+
 ## 🐛 故障排查
 
-### 问题 1: GitHub Actions 部署失败
+### 问题 1: Node.js 版本不匹配
+
+**症状：**
+
+- 本地运行正常，部署后出现运行时错误
+- 依赖包行为不一致
+- 某些功能在本地正常，生产环境异常
+
+**解决方案：**
+
+1. 检查本地 Node.js 版本：
+
+    ```bash
+    node --version
+    # 必须是 v20.19.5
+    ```
+
+2. 使用 nvm 切换到正确版本：
+
+    ```bash
+    nvm install 20.19.5
+    nvm use 20.19.5
+    ```
+
+3. 重新安装依赖：
+
+    ```bash
+    rm -rf node_modules pnpm-lock.yaml
+    pnpm install
+    ```
+
+4. 验证版本一致性：
+    ```bash
+    node --version
+    pnpm --version
+    ```
+
+### 问题 2: GitHub Actions 部署失败
 
 **症状：**
 
@@ -474,10 +589,29 @@ Error: Unable to locate credentials
 
 **解决方案：**
 
-1. 检查 `.env` 文件是否在项目根目录
-2. 确认环境变量名称正确（大写，下划线分隔）
-3. 重启开发服务器
-4. 检查 `config/custom-environment-variables.yaml` 映射
+1. 确认已执行 `source .env` 将环境变量注入到 shell
+2. 检查 `.env` 文件是否在项目根目录
+3. 确认环境变量名称正确（大写，下划线分隔）
+4. 重启开发服务器
+5. 检查 `config/custom-environment-variables.yaml` 映射
+
+**验证方法：**
+
+```bash
+# 检查环境变量是否已加载
+echo $CONSOLE_DB_HOST
+echo $CONSOLE_DB_PASSWORD
+
+# 检查配置是否正确映射
+pnpm run start:dev:console
+# 查看应用启动日志中的数据库连接信息
+```
+
+**注意**：
+
+- 项目使用 `config` 包加载 YAML 配置文件，不会自动加载 `.env` 文件
+- `.env` 文件仅用于本地开发时注入环境变量到 shell
+- 环境变量主要用于覆盖 YAML 配置中的敏感信息
 
 ### 问题 3: 配置优先级问题
 

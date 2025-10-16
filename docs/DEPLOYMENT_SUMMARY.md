@@ -1,19 +1,10 @@
 # 腾讯云 Serverless 部署总结
 
-## 🎯 项目部署方案
+## 🎯 部署方案概述
 
 本项目采用**腾讯云 Serverless Components** 部署方式，使用 **Layer 管理依赖**，实现高效的 Nest.js 应用部署。
 
-**官方文档**:
-
-- [命令行部署](https://cloud.tencent.com/document/product/1154/59447)
-- [完整配置文档](https://github.com/serverless-components/tencent-http/blob/master/docs/configure.md)
-
----
-
-## ✨ 为什么选择这个方案？
-
-### 相比传统 Web Function 部署
+### 核心优势
 
 | 特性           | Serverless Components + Layer | 传统 Web Function |
 | -------------- | ----------------------------- | ----------------- |
@@ -22,16 +13,11 @@
 | **部署速度**   | ✅ 快（增量更新）             | ❌ 慢（全量上传） |
 | **版本管理**   | ✅ Layer 自动版本控制         | ❌ 无版本控制     |
 | **自动化程度** | ✅ 智能变更检测               | ❌ 手动判断       |
-| **配置方式**   | ✅ serverless.yml             | ❌ 控制台配置     |
 
-### 架构优势
+### 相关文档
 
-✅ **Layer 管理** - node_modules 独立部署和管理
-✅ **智能检测** - 自动检测代码和依赖变更
-✅ **版本控制** - Layer 自动版本递增
-✅ **按需部署** - 只部署有变更的组件
-✅ **配置即代码** - serverless.yml 管理所有配置
-✅ **命令行部署** - 使用 SCF CLI 一键部署
+- 📖 **CI/CD 策略**：[CI_TEST_STRATEGY.md](CI_TEST_STRATEGY.md) - 测试和部署策略
+- 📖 **环境变量配置**：[ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md) - 环境变量配置指南
 
 ---
 
@@ -308,42 +294,15 @@ ERR_PNPM_NO_GLOBAL_BIN_DIR  Unable to find the global bin directory
 | `FORCE_BUILD` | 跳过变更检测，强制部署所有 | `FORCE_BUILD=true ./ci-deploy.sh` | -      |
 | `STAGE`       | 部署环境 (dev/prod)        | `STAGE=prod ./ci-deploy.sh`       | `dev`  |
 
-### GitHub Actions 所需变量
+### 环境变量配置
 
-#### 腾讯云部署凭证
+📖 **详细的环境变量配置教程**：[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)
 
-| 变量                      | 说明                        | 用途         | 配置位置       |
-| ------------------------- | --------------------------- | ------------ | -------------- |
-| `DEV_TENCENT_SECRET_ID`   | 腾讯云 API 密钥 ID (DEV)    | DEV 环境部署 | GitHub Secrets |
-| `DEV_TENCENT_SECRET_KEY`  | 腾讯云 API 密钥 Key (DEV)   | DEV 环境部署 | GitHub Secrets |
-| `PROD_TENCENT_SECRET_ID`  | 腾讯云 API 密钥 ID（生产）  | 生产环境部署 | GitHub Secrets |
-| `PROD_TENCENT_SECRET_KEY` | 腾讯云 API 密钥 Key（生产） | 生产环境部署 | GitHub Secrets |
+**配置方法**：
 
-#### 数据库 Migration 凭证
-
-##### DEV 环境
-
-| 变量                      | 说明          | 用途          |
-| ------------------------- | ------------- | ------------- |
-| `DEV_MIGRATION_DB_HOST`   | 数据库主机    | DEV Migration |
-| `DEV_MIGRATION_DB_PORT`   | 数据库端口    | DEV Migration |
-| `DEV_MIGRATION_DB_NAME`   | 数据库名称    | DEV Migration |
-| `DEV_MIGRATION_DB_SCHEMA` | 数据库 Schema | DEV Migration |
-| `DEV_MIGRATION_USER`      | 数据库用户名  | DEV Migration |
-| `DEV_MIGRATION_PASSWORD`  | 数据库密码    | DEV Migration |
-
-##### PROD 环境
-
-| 变量                       | 说明          | 用途           |
-| -------------------------- | ------------- | -------------- |
-| `PROD_MIGRATION_DB_HOST`   | 数据库主机    | PROD Migration |
-| `PROD_MIGRATION_DB_PORT`   | 数据库端口    | PROD Migration |
-| `PROD_MIGRATION_DB_NAME`   | 数据库名称    | PROD Migration |
-| `PROD_MIGRATION_DB_SCHEMA` | 数据库 Schema | PROD Migration |
-| `PROD_MIGRATION_USER`      | 数据库用户名  | PROD Migration |
-| `PROD_MIGRATION_PASSWORD`  | 数据库密码    | PROD Migration |
-
-**配置方法**：仓库 Settings → Environments → Click relavant env and set
+- GitHub Actions：仓库 Settings → Secrets and variables → Actions -> Secrets
+- 本地开发：复制 `.env.example` 为 `.env` 并修改
+- 生产环境：通过云平台环境变量设置
 
 **环境隔离：**
 

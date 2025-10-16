@@ -21,6 +21,7 @@ inputs:
     environment:
         variables:
             NODE_ENV: production
+            TZ: Asia/Shanghai
             CONSOLE_SERVER_PORT: 9000
             CONSOLE_DB_HOST: ${{ env:CONSOLE_DB_HOST }}
             CONSOLE_DB_PORT: ${{ env:CONSOLE_DB_PORT }}

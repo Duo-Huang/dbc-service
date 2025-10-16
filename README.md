@@ -1,6 +1,6 @@
 # DBC - NestJS Monorepo 项目
 
-基于 NestJS 框架的 Monorepo 项目，专为腾讯云 Web Function 部署优化。
+基于 NestJS 框架的 Monorepo 项目
 
 ## 项目结构
 
@@ -30,71 +30,109 @@ dbc/
 
 ## 快速开始
 
-### 安装依赖
+### 1. 环境配置
+
+1. **确保 Node.js 版本**：
+
+    ```bash
+    # 检查 Node.js 版本 (必须是 20.19.5)
+    node --version
+
+    # 如果版本不匹配，请使用 nvm 切换
+    nvm use
+    ```
+
+2. **复制环境变量模板**：
+
+    ```bash
+    cp .env.example .env
+    ```
+
+3. **修改配置**：
+    - 编辑 `.env` 文件，设置本地开发环境的实际值
+    - 非敏感配置可直接修改 `config/development.yaml`, 支持本地和生产(dev & prod) 差异化配置, 会提交, 请勿存放敏感信息!!!
+
+4. **加载环境变量到 shell**：
+
+    ```bash
+    source .env
+    ```
+
+5. **启动应用**：
+    ```bash
+    pnpm run start:dev:console    # Console 应用
+    pnpm run start:dev:miniapp    # Miniapp 应用
+    ```
+
+**说明**：
+
+- 项目使用 `config` 包加载 YAML 配置文件
+- `.env` 文件不会被项目自动加载，仅用于本地开发时注入环境变量
+- 环境变量主要用于部署时覆盖 YAML 配置中的敏感信息
+
+**配置优先级**：环境变量 > config/\*.yaml 文件
+
+📖 **详细配置说明**：[环境变量配置指南](docs/ENVIRONMENT_VARIABLES.md)
+
+### 2. 安装和启动
 
 ```bash
+# 安装依赖
 pnpm install
-```
 
-### 数据库
-
-```bash
 # 启动数据库
 docker compose up -d
 
-# 运行迁移
+# 运行数据库迁移
 pnpm migration run
 ```
 
-**快速命令：**
+### 3. 开发命令
 
 ```bash
-pnpm migration generate <名称>    # 生成 migration
-pnpm migration run                # 运行 migrations
-pnpm migration show               # 查看状态
-```
+# 构建项目
+pnpm build                    # 构建所有应用
+pnpm build:console           # 单独构建 Console
+pnpm build:miniapp           # 单独构建 Miniapp
 
-📖 详细说明请查看 [Migration 指南](docs/MIGRATION.md)
-
-### 本地开发
-
-```bash
-# Console 应用（开发模式）
-pnpm run start:dev:console
-
-# Miniapp 应用（开发模式）
-pnpm run start:dev:miniapp
-```
-
-### 构建项目
-
-```bash
-# 构建所有应用
-pnpm build
-
-# 单独构建
-pnpm build:console
-pnpm build:miniapp
-```
-
-### 运行测试
-
-```bash
-# 单元测试
-pnpm test
-
-# E2E 测试
+# 运行测试
+pnpm test                     # 单元测试
 pnpm test:e2e                # 所有 E2E 测试
-pnpm test:e2e:console        # 仅 Console
-pnpm test:e2e:miniapp        # 仅 Miniapp
-
-# 测试覆盖率
+pnpm test:e2e:console        # 仅 Console E2E 测试
+pnpm test:e2e:miniapp        # 仅 Miniapp E2E 测试
 pnpm test:cov                # 单元测试覆盖率
 pnpm test:e2e:cov            # E2E 测试覆盖率
 
 # 代码检查
-pnpm lint
+pnpm lint                    # ESLint 检查
+pnpm lint:fix                # 自动修复 ESLint 问题
+
+# 数据库迁移
+pnpm migration generate <名称>    # 根据entities生成 migration
+pnpm migration run                # 运行 migrations
+pnpm migration show               # 查看 migration 状态
+pnpm migration revert            # 回滚最后一个 migration
 ```
+
+**常用开发流程**：
+
+```bash
+# 1. 启动开发环境
+docker compose up -d          # 启动数据库
+source .env                   # 加载环境变量
+pnpm run start:dev:console   # 启动 Console 应用
+
+# 2. 开发过程中
+pnpm migration generate AddUserTable    # 生成新的 migration
+pnpm test                              # 运行测试
+pnpm lint:fix                          # 修复代码格式
+
+# 3. 部署前检查
+pnpm build                            # 构建项目
+pnpm test:all                         # 运行所有测试
+```
+
+📖 **详细开发指南**：[配置管理](docs/CONFIG.md) | [数据库迁移](docs/MIGRATION.md) | [日志系统](docs/LOGGER.md)
 
 ---
 
@@ -155,13 +193,23 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 - 根据检测结果自动部署相应组件
 - Layer 使用版本管理，自动递增
 
+**环境变量配置**：
+
+```bash
+# 本地开发
+cp .env.example .env
+# 编辑 .env 文件设置本地配置
+
+# GitHub Actions 部署
+# 在仓库 Settings → Secrets and variables → Actions -> Secrets 中配置
+```
+
 **📖 详细部署文档**:
 
-- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 完整部署流程和说明
 - [CI/CD 策略](docs/CI_TEST_STRATEGY.md) - 测试和部署策略
+- [部署总结](docs/DEPLOYMENT_SUMMARY.md) - 完整部署流程和说明
 - [环境变量配置](docs/ENVIRONMENT_VARIABLES.md) - GitHub 和本地环境变量配置
 - [部署脚本](deployment/README.md) - 脚本使用和配置
-- [官方文档](https://cloud.tencent.com/document/product/1154/59447) - 腾讯云 SCF CLI 文档
 
 ---
 
@@ -175,8 +223,11 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 - ✅ **智能测试** - Jest 单元测试 + E2E 测试，按需执行
 - ✅ **CI/CD** - GitHub Actions 智能变更检测，自动构建部署
 - ✅ **Web Function** - 适配腾讯云 Serverless 部署
+- ✅ **版本一致性** - 本地开发与生产环境 Node.js 版本严格一致
 
 **技术栈**: NestJS 11 + TypeScript 5 + PostgreSQL 18 + Pino + pnpm
+
+**Node.js 版本**: 20.19.5 (与腾讯云 Serverless 环境保持一致)
 
 ---
 
