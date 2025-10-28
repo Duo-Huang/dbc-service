@@ -62,6 +62,78 @@ export function IsHostname(validationOptions?: ValidationOptions) {
 }
 
 /**
+ * 自定义验证器：验证 CORS origin
+ * 支持：
+ * 1. 字符串 '*' (允许所有域名)
+ * 2. 单个有效的 URL origin (如 https://example.com)
+ * 3. 字符串数组，每个都是有效的 URL origin
+ */
+export function IsCorsOrigin(validationOptions?: ValidationOptions) {
+    return ValidateBy(
+        {
+            name: 'isCorsOrigin',
+            validator: {
+                validate: (value: any) => {
+                    // 允许通配符
+                    if (value === '*') {
+                        return true;
+                    }
+
+                    // 验证单个 origin
+                    // 注意：参数类型为 any 是因为数组元素在运行时可能是任何类型（来自配置文件）
+                    const validateOrigin = (origin: any): boolean => {
+                        // 必须是非空字符串
+                        if (typeof origin !== 'string' || origin.length === 0) {
+                            return false;
+                        }
+
+                        // 允许通配符
+                        if (origin === '*') {
+                            return true;
+                        }
+
+                        // 验证 URL 格式
+                        try {
+                            const url = new URL(origin);
+                            // 必须是 http 或 https 协议
+                            if (!['http:', 'https:'].includes(url.protocol)) {
+                                return false;
+                            }
+                            // 验证主机名部分
+                            const hostname = url.hostname;
+                            return (
+                                isIP(hostname) ||
+                                isFQDN(hostname, { require_tld: false })
+                            );
+                        } catch {
+                            return false;
+                        }
+                    };
+
+                    // 如果是数组，验证每一项
+                    if (Array.isArray(value)) {
+                        return (
+                            value.length > 0 &&
+                            value.every((origin) => validateOrigin(origin))
+                        );
+                    }
+
+                    // 如果是字符串，验证单个值
+                    if (typeof value === 'string') {
+                        return validateOrigin(value);
+                    }
+
+                    return false;
+                },
+                defaultMessage: () =>
+                    'origin 必须是 "*" 或有效的 URL（如 https://example.com），或它们的数组',
+            },
+        },
+        validationOptions,
+    );
+}
+
+/**
  * 服务端口配置类
  */
 export class ServerPortConfig {
@@ -69,6 +141,25 @@ export class ServerPortConfig {
     @Min(1024, { message: '端口号必须大于等于 1024' })
     @Max(49151, { message: '端口号必须小于等于 49151' })
     port: number;
+}
+
+/**
+ * CORS Origin 类型定义
+ * - '*': 通配符，允许所有域名
+ * - string: 单个有效的 HTTP/HTTPS URL (如 'https://example.com')
+ * - string[]: 多个有效的 HTTP/HTTPS URL 数组
+ */
+export type CorsOriginValue = string | string[];
+
+/**
+ * CORS 配置类
+ */
+export class CorsConfig {
+    @IsCorsOrigin()
+    origin: CorsOriginValue;
+
+    @IsBoolean()
+    credentials: boolean;
 }
 
 /**
@@ -123,6 +214,10 @@ export class MiniappConfig {
     server: ServerPortConfig;
 
     @ValidateNested()
+    @Type(() => CorsConfig)
+    cors: CorsConfig;
+
+    @ValidateNested()
     @Type(() => DatasourceConfig)
     datasource: DatasourceConfig;
 
@@ -144,6 +239,10 @@ export class ConsoleConfig {
     @ValidateNested()
     @Type(() => ServerPortConfig)
     server: ServerPortConfig;
+
+    @ValidateNested()
+    @Type(() => CorsConfig)
+    cors: CorsConfig;
 
     @ValidateNested()
     @Type(() => DatasourceConfig)

@@ -1,6 +1,9 @@
 miniapp:
     server:
         port: 3000
+    cors:
+        origin: '*'
+        credentials: true
     datasource:
         host: replace_me
         port: replace_me
@@ -15,6 +18,9 @@ miniapp:
 console:
     server:
         port: 4000
+    cors:
+        origin: '*'
+        credentials: true
     datasource:
         host: replace_me
         port: replace_me

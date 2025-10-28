@@ -1,6 +1,11 @@
 miniapp:
     server:
         port: 9000
+    cors:
+        origin:
+            - https://yourdomain.com
+            - https://www.yourdomain.com
+        credentials: true
     datasource:
         host: dot_put_secret_here
         port: dot_put_secret_here
@@ -15,6 +20,11 @@ miniapp:
 console:
     server:
         port: 9000
+    cors:
+        origin:
+            - https://yourdomain.com
+            - https://www.yourdomain.com
+        credentials: true
     datasource:
         host: dot_put_secret_here
         port: dot_put_secret_here
