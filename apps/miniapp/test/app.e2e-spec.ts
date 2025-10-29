@@ -24,7 +24,7 @@ describe('MiniappController (e2e)', () => {
         );
 
         // 设置全局路由前缀（与 main.ts 保持一致）
-        app.setGlobalPrefix('api');
+        app.setGlobalPrefix('/api/wx');
 
         // 启用 API 版本控制（与 main.ts 保持一致）
         app.enableVersioning({
@@ -40,9 +40,9 @@ describe('MiniappController (e2e)', () => {
         await app.close();
     });
 
-    it('/api/v1 (GET)', () => {
-        return request(app.getHttpServer())
-            .get('/api/v1')
+    it('/api/wx/v1 (GET)', () => {
+        return request(app.getHttpAdapter().getInstance().server)
+            .get('/api/wx/v1')
             .expect(200)
             .expect((res) => {
                 expect(res.body).toEqual({
