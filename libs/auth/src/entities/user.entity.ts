@@ -41,26 +41,6 @@ export class User {
     @Column({
         type: 'varchar',
         length: 64,
-        name: 'open_id_official_account',
-        nullable: true,
-        unique: true,
-        comment: '公众号OpenID',
-    })
-    openIdOfficialAccount: string | null;
-
-    @Column({
-        type: 'varchar',
-        length: 64,
-        name: 'open_id_service_account',
-        nullable: true,
-        unique: true,
-        comment: '服务号OpenID',
-    })
-    openIdServiceAccount: string | null;
-
-    @Column({
-        type: 'varchar',
-        length: 64,
         name: 'open_id_miniapp',
         unique: true,
         comment: '小程序OpenID',
