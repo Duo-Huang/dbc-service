@@ -1,17 +1,17 @@
-# Miniapp 服务配置
+# Miniprogram 服务配置
 # 使用 SCF CLI 部署: scf deploy
 
 component: scf
-name: dbc-miniapp
+name: dbc-miniprogram
 org: qypeak
 app: dbc
 stage: dev
 
 inputs:
-    name: dbc-miniapp
+    name: dbc-miniprogram
     type: web
     src:
-        src: ../../dist/apps/miniapp
+        src: ../../dist/apps/miniprogram
         exclude:
             - .env
     runtime: Nodejs20.19
@@ -22,13 +22,13 @@ inputs:
         variables:
             NODE_ENV: production
             TZ: Asia/Shanghai
-            MINIAPP_SERVER_PORT: 9000
-            MINIAPP_DB_HOST: ${{ env:MINIAPP_DB_HOST }}
-            MINIAPP_DB_PORT: ${{ env:MINIAPP_DB_PORT }}
-            MINIAPP_DB_NAME: ${{ env:MINIAPP_DB_NAME }}
-            MINIAPP_DB_SCHEMA: ${{ env:MINIAPP_DB_SCHEMA }}
-            MINIAPP_DB_USER: ${{ env:MINIAPP_DB_USER }}
-            MINIAPP_DB_PASSWORD: ${{ env:MINIAPP_DB_PASSWORD }}
+            MINIPROGRAM_SERVER_PORT: 9000
+            MINIPROGRAM_DB_HOST: ${{ env:MINIPROGRAM_DB_HOST }}
+            MINIPROGRAM_DB_PORT: ${{ env:MINIPROGRAM_DB_PORT }}
+            MINIPROGRAM_DB_NAME: ${{ env:MINIPROGRAM_DB_NAME }}
+            MINIPROGRAM_DB_SCHEMA: ${{ env:MINIPROGRAM_DB_SCHEMA }}
+            MINIPROGRAM_DB_USER: ${{ env:MINIPROGRAM_DB_USER }}
+            MINIPROGRAM_DB_PASSWORD: ${{ env:MINIPROGRAM_DB_PASSWORD }}
     layers:
         - name: ${output:${stage}:${app}:dbc-deps-layer.name}
           version: ${output:${stage}:${app}:dbc-deps-layer.version}

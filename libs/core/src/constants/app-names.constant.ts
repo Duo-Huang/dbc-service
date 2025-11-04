@@ -4,7 +4,7 @@
  * 用于配置模块识别当前运行的应用
  */
 export const APP_NAMES = {
-    MINIAPP: 'miniapp',
+    MINIPROGRAM: 'miniprogram',
     CONSOLE: 'console',
 } as const;
 

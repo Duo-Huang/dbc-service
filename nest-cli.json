@@ -38,13 +38,13 @@
                 "webpackConfigPath": "webpack.config.js"
             }
         },
-        "miniapp": {
+        "miniprogram": {
             "type": "application",
-            "root": "apps/miniapp",
+            "root": "apps/miniprogram",
             "entryFile": "main",
-            "sourceRoot": "apps/miniapp/src",
+            "sourceRoot": "apps/miniprogram/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/miniapp/tsconfig.app.json",
+                "tsConfigPath": "apps/miniprogram/tsconfig.app.json",
                 "webpackConfigPath": "webpack.config.js"
             }
         }

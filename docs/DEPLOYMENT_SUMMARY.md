@@ -38,8 +38,8 @@
 │   ├── scf_bootstrap          # 启动脚本
 │   └── serverless.yml         # 配置文件
 │
-└── Miniapp Function
-    ├── dist/apps/miniapp/     # 构建产物
+└── Miniprogram Function
+    ├── dist/apps/miniprogram/     # 构建产物
     ├── scf_bootstrap          # 启动脚本
     └── serverless.yml         # 配置文件
 
@@ -51,9 +51,9 @@ deployment/
 ├── console/
 │   ├── scf_bootstrap          # Console 启动脚本
 │   └── serverless.yml         # Console 配置
-├── miniapp/
-│   ├── scf_bootstrap          # Miniapp 启动脚本
-│   └── serverless.yml         # Miniapp 配置
+├── miniprogram/
+│   ├── scf_bootstrap          # Miniprogram 启动脚本
+│   └── serverless.yml         # Miniprogram 配置
 └── layers/dep/
     └── serverless.yml         # Layer 配置
 ```
@@ -62,10 +62,10 @@ deployment/
 
 ```
 1. 检测变更
-   ├── dependencies 字段变更？ → 部署 Layer
-   ├── apps/console/ 变更？    → 部署 Console
-   ├── apps/miniapp/ 变更？    → 部署 Miniapp
-   └── libs/、config/ 变更？   → 部署 Console + Miniapp
+   ├── dependencies 字段变更？      → 部署 Layer
+   ├── apps/console/ 变更？        → 部署 Console
+   ├── apps/miniprogram/ 变更？    → 部署 Miniprogram
+   └── libs/、config/ 变更？       → 部署 Console + Miniprogram
 
 2. 部署 Layer（如果需要）
    ├── 构建 node_modules
@@ -75,7 +75,7 @@ deployment/
 
 3. 部署应用（按需）
    ├── 部署 Console
-   └── 部署 Miniapp
+   └── 部署 Miniprogram
 ```
 
 ---
@@ -131,7 +131,7 @@ pnpm build
 STAGE=prod ./deployment/ci-deploy.sh
 
 # 脚本会自动:
-# - 检测 Layer、Console、Miniapp 变更
+# - 检测 Layer、Console、Miniprogram 变更
 # - 根据检测结果自动部署相应组件
 # - Layer 版本自动更新
 ```
@@ -153,7 +153,7 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 # 会强制部署:
 # - Layer
 # - Console
-# - Miniapp
+# - Miniprogram
 ```
 
 #### 方式三：GitHub Actions 自动化部署（推荐）
@@ -386,7 +386,7 @@ fi
 git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -qE '^(libs/|config/|webpack\.config\.js|...)'
 
 # Console 变更 = apps/console/ 变更 OR 共享代码变更 OR Layer 变更
-# Miniapp 变更 = apps/miniapp/ 变更 OR 共享代码变更 OR Layer 变更
+# Miniprogram 变更 = apps/miniprogram/ 变更 OR 共享代码变更 OR Layer 变更
 ```
 
 **变更检测输出：**
@@ -394,12 +394,12 @@ git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -qE '^(libs/|config/|w
 - `LAYER_CHANGED`: dependencies 是否变更
 - `SHARED_CHANGED`: 共享代码是否变更
 - `CONSOLE_CHANGED`: Console 是否需要部署（已包含 shared 和 layer 影响）
-- `MINIAPP_CHANGED`: Miniapp 是否需要部署（已包含 shared 和 layer 影响）
+- `MINIPROGRAM_CHANGED`: Miniprogram 是否需要部署（已包含 shared 和 layer 影响）
 
 **变更影响关系：**
 
-- `SHARED_CHANGED=true` → 强制 `CONSOLE_CHANGED=true`, `MINIAPP_CHANGED=true`
-- `LAYER_CHANGED=true` → 强制 `CONSOLE_CHANGED=true`, `MINIAPP_CHANGED=true`（确保版本匹配）
+- `SHARED_CHANGED=true` → 强制 `CONSOLE_CHANGED=true`, `MINIPROGRAM_CHANGED=true`
+- `LAYER_CHANGED=true` → 强制 `CONSOLE_CHANGED=true`, `MINIPROGRAM_CHANGED=true`（确保版本匹配）
 
 ### 智能决策
 
@@ -407,7 +407,7 @@ git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -qE '^(libs/|config/|w
 
 - `LAYER_CHANGED=true` → 重建并部署 Layer
 - `CONSOLE_CHANGED=true` → 部署 Console
-- `MINIAPP_CHANGED=true` → 部署 Miniapp
+- `MINIPROGRAM_CHANGED=true` → 部署 Miniprogram
 - 全部为 `false` → 跳过部署
 
 ### 前置要求
@@ -509,7 +509,7 @@ curl http://localhost:3000/health
 
 - [ ] Layer 部署成功
 - [ ] Console 应用部署成功
-- [ ] Miniapp 应用部署成功
+- [ ] Miniprogram 应用部署成功
 - [ ] API Gateway 配置正确
 - [ ] 环境变量配置正确
 - [ ] 应用可以正常访问

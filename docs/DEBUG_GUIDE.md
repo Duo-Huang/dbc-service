@@ -13,9 +13,9 @@
 - **环境**: `NODE_ENV=development`
 - **快捷键**: `F5` (默认)
 
-### 2. 调试 Miniapp 应用
+### 2. 调试 Miniprogram 应用
 
-- **用途**: 调试 Miniapp 应用（开发环境配置）
+- **用途**: 调试 Miniprogram 应用（开发环境配置）
 - **端口**: 从 `config/default.yaml` 读取 (默认 3000)
 - **环境**: `NODE_ENV=development`
 
@@ -29,10 +29,10 @@
 ### 4. 调试 Console (自定义端口)
 
 - **用途**: 使用自定义端口调试
-- **端口**: Console=5000, Miniapp=6000 (通过环境变量覆盖)
+- **端口**: Console=5000, Miniprogram=6000 (通过环境变量覆盖)
 - **环境**: `NODE_ENV=development`
 - **场景**: 测试环境变量覆盖功能
-- **说明**: 配置已应用独立化，通过 `CONSOLE_SERVER_PORT` 和 `MINIAPP_SERVER_PORT` 环境变量覆盖
+- **说明**: 配置已应用独立化，通过 `CONSOLE_SERVER_PORT` 和 `MINIPROGRAM_SERVER_PORT` 环境变量覆盖
 
 ### 5. 附加到进程
 
@@ -50,7 +50,7 @@
 
 ### 7. 调试所有应用 (组合配置)
 
-- **用途**: 同时调试 Console 和 Miniapp 应用
+- **用途**: 同时调试 Console 和 Miniprogram 应用
 - **场景**: 需要同时运行多个服务进行联调
 
 ## 调试技巧

@@ -12,7 +12,7 @@
 #   LAYER_CHANGED=true|false      - dependencies 是否变更
 #   SHARED_CHANGED=true|false     - 共享代码是否变更（libs/, config/ 等）
 #   CONSOLE_CHANGED=true|false    - Console 应用是否变更（包含 shared 影响）
-#   MINIAPP_CHANGED=true|false    - Miniapp 应用是否变更（包含 shared 影响）
+#   MINIPROGRAM_CHANGED=true|false    - Miniprogram 应用是否变更（包含 shared 影响）
 
 set -e
 
@@ -40,7 +40,7 @@ fi
 LAYER_CHANGED=false
 SHARED_CHANGED=false
 CONSOLE_CHANGED=false
-MINIAPP_CHANGED=false
+MINIPROGRAM_CHANGED=false
 
 # 检查是否强制构建
 if [ "$FORCE_BUILD" = "true" ] || [ "$FORCE_BUILD" = "1" ]; then
@@ -48,7 +48,7 @@ if [ "$FORCE_BUILD" = "true" ] || [ "$FORCE_BUILD" = "1" ]; then
     LAYER_CHANGED=true
     SHARED_CHANGED=true
     CONSOLE_CHANGED=true
-    MINIAPP_CHANGED=true
+    MINIPROGRAM_CHANGED=true
 else
     # 确定比对基准和目标
     if [ -n "$BASE_TAG" ] && [ -n "$TARGET_REF" ]; then
@@ -66,21 +66,21 @@ else
             LAYER_CHANGED=true
             SHARED_CHANGED=true
             CONSOLE_CHANGED=true
-            MINIAPP_CHANGED=true
+            MINIPROGRAM_CHANGED=true
 
             # 输出到 GitHub Actions
             if [ -n "$GITHUB_OUTPUT" ]; then
                 echo "layer_changed=true" >> "$GITHUB_OUTPUT"
                 echo "shared_changed=true" >> "$GITHUB_OUTPUT"
                 echo "console_changed=true" >> "$GITHUB_OUTPUT"
-                echo "miniapp_changed=true" >> "$GITHUB_OUTPUT"
+                echo "miniprogram_changed=true" >> "$GITHUB_OUTPUT"
             fi
 
             # 输出到环境变量
             export LAYER_CHANGED
             export SHARED_CHANGED
             export CONSOLE_CHANGED
-            export MINIAPP_CHANGED
+            export MINIPROGRAM_CHANGED
 
             echo ""
             echo "======================================"
@@ -89,7 +89,7 @@ else
             echo "  Layer Changed:    $LAYER_CHANGED"
             echo "  Shared Changed:   $SHARED_CHANGED"
             echo "  Console Changed:  $CONSOLE_CHANGED"
-            echo "  Miniapp Changed:  $MINIAPP_CHANGED"
+            echo "  Miniprogram Changed:  $MINIPROGRAM_CHANGED"
             echo "======================================"
             echo ""
             exit 0
@@ -154,25 +154,25 @@ else
         echo "  - Console 无变更"
     fi
 
-    # 4. 检查 Miniapp 应用变更（包含 shared 影响）
+    # 4. 检查 Miniprogram 应用变更（包含 shared 影响）
     echo ""
-    echo "检查 Miniapp 应用..."
-    MINIAPP_APP_CHANGED=false
-    if git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -q '^apps/miniapp/'; then
-        echo "  ✓ Miniapp 应用代码有变更"
-        MINIAPP_APP_CHANGED=true
-        MINIAPP_CHANGED=true
+    echo "检查 Miniprogram 应用..."
+    MINIPROGRAM_APP_CHANGED=false
+    if git diff $COMPARE_BASE $COMPARE_TARGET --name-only | grep -q '^apps/miniprogram/'; then
+        echo "  ✓ Miniprogram 应用代码有变更"
+        MINIPROGRAM_APP_CHANGED=true
+        MINIPROGRAM_CHANGED=true
     fi
 
     if [ "$SHARED_CHANGED" = "true" ]; then
-        if [ "$MINIAPP_APP_CHANGED" = "false" ]; then
-            echo "  ✓ Miniapp 受共享代码变更影响"
+        if [ "$MINIPROGRAM_APP_CHANGED" = "false" ]; then
+            echo "  ✓ Miniprogram 受共享代码变更影响"
         fi
-        MINIAPP_CHANGED=true
+        MINIPROGRAM_CHANGED=true
     fi
 
-    if [ "$MINIAPP_CHANGED" = "false" ]; then
-        echo "  - Miniapp 无变更"
+    if [ "$MINIPROGRAM_CHANGED" = "false" ]; then
+        echo "  - Miniprogram 无变更"
     fi
 
     # 5. Layer 变更影响所有应用（确保版本匹配）
@@ -183,9 +183,9 @@ else
             echo "  ✓ Console 受 Layer 变更影响（确保版本匹配）"
             CONSOLE_CHANGED=true
         fi
-        if [ "$MINIAPP_CHANGED" = "false" ]; then
-            echo "  ✓ Miniapp 受 Layer 变更影响（确保版本匹配）"
-            MINIAPP_CHANGED=true
+        if [ "$MINIPROGRAM_CHANGED" = "false" ]; then
+            echo "  ✓ Miniprogram 受 Layer 变更影响（确保版本匹配）"
+            MINIPROGRAM_CHANGED=true
         fi
     fi
 fi
@@ -198,7 +198,7 @@ echo "======================================"
 echo "  Layer Changed:    $LAYER_CHANGED"
 echo "  Shared Changed:   $SHARED_CHANGED"
 echo "  Console Changed:  $CONSOLE_CHANGED"
-echo "  Miniapp Changed:  $MINIAPP_CHANGED"
+echo "  Miniprogram Changed:  $MINIPROGRAM_CHANGED"
 echo "======================================"
 echo ""
 
@@ -207,11 +207,11 @@ if [ -n "$GITHUB_OUTPUT" ]; then
     echo "layer_changed=$LAYER_CHANGED" >> $GITHUB_OUTPUT
     echo "shared_changed=$SHARED_CHANGED" >> $GITHUB_OUTPUT
     echo "console_changed=$CONSOLE_CHANGED" >> $GITHUB_OUTPUT
-    echo "miniapp_changed=$MINIAPP_CHANGED" >> $GITHUB_OUTPUT
+    echo "miniprogram_changed=$MINIPROGRAM_CHANGED" >> $GITHUB_OUTPUT
 fi
 
 # 输出到环境变量（供其他脚本使用）
 export LAYER_CHANGED
 export SHARED_CHANGED
 export CONSOLE_CHANGED
-export MINIAPP_CHANGED
+export MINIPROGRAM_CHANGED

@@ -6,17 +6,17 @@ import {
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
 import { APP_NAMES } from '@dbc/core';
-import { MiniappModule } from './../src/miniapp.module';
+import { MiniprogramModule } from './../src/miniprogram.module';
 
 // 设置应用名称环境变量，供配置模块使用
-process.env.APP_NAME = APP_NAMES.MINIAPP;
+process.env.APP_NAME = APP_NAMES.MINIPROGRAM;
 
-describe('MiniappController (e2e)', () => {
+describe('MiniprogramController (e2e)', () => {
     let app: NestFastifyApplication;
 
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [MiniappModule],
+            imports: [MiniprogramModule],
         }).compile();
 
         app = moduleFixture.createNestApplication<NestFastifyApplication>(

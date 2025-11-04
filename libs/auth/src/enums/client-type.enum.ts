@@ -1,4 +1,4 @@
 export enum ClientType {
-    MINIAPP = 'miniapp',
+    MINIPROGRAM = 'miniprogram',
     WEB = 'web',
 }

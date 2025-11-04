@@ -6,8 +6,8 @@
 \set migration_password '''dbc.local.migrator.1234'''
 \set app_write_role 'dbc_app_writer'
 \set app_read_role  'dbc_app_reader'
-\set miniapp_user   'dbc_miniapp_writer'
-\set miniapp_password '''dbc.local.123'''
+\set miniprogram_user   'dbc_miniprogram_writer'
+\set miniprogram_password '''dbc.local.123'''
 \set console_user   'dbc_console_writer'
 \set console_password '''dbc.local.123'''
 \set readonly_user  'dbc_readonly'
@@ -24,12 +24,12 @@ CREATE ROLE :app_write_role NOLOGIN;
 CREATE ROLE :app_read_role NOLOGIN;
 
 -- 3. 创建具体应用用户
-CREATE ROLE :miniapp_user WITH LOGIN PASSWORD :miniapp_password;
+CREATE ROLE :miniprogram_user WITH LOGIN PASSWORD :miniprogram_password;
 CREATE ROLE :console_user WITH LOGIN PASSWORD :console_password;
 CREATE ROLE :readonly_user WITH LOGIN PASSWORD :readonly_password;
 
 -- 4. 将应用用户加入分组角色（幂等）
-GRANT :app_write_role TO :miniapp_user;
+GRANT :app_write_role TO :miniprogram_user;
 GRANT :app_write_role TO :console_user;
 GRANT :app_read_role  TO :readonly_user;
 
@@ -39,7 +39,7 @@ ALTER SCHEMA :schema_name OWNER TO :migration_user;
 
 -- 6. 设定 search_path（便于 SQL 使用短名）
 ALTER ROLE :migration_user SET search_path = :schema_name, public;
-ALTER ROLE :miniapp_user   SET search_path = :schema_name, public;
+ALTER ROLE :miniprogram_user   SET search_path = :schema_name, public;
 ALTER ROLE :console_user   SET search_path = :schema_name, public;
 ALTER ROLE :readonly_user  SET search_path = :schema_name, public;
 

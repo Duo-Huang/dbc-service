@@ -18,11 +18,11 @@
             "skipFiles": ["<node_internals>/**"]
         },
         {
-            "name": "调试 Miniapp 应用",
+            "name": "调试 Miniprogram 应用",
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "start:debug:miniapp"],
+            "runtimeArgs": ["run", "start:debug:miniprogram"],
             "console": "integratedTerminal",
             "restart": true,
             "env": {
@@ -67,7 +67,7 @@
             "skipFiles": ["<node_internals>/**"]
         },
         {
-            "name": "E2E: Miniapp 测试",
+            "name": "E2E: Miniprogram 测试",
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "pnpm",
@@ -75,7 +75,7 @@
                 "exec",
                 "jest",
                 "--config",
-                "./apps/miniapp/test/jest-e2e.json",
+                "./apps/miniprogram/test/jest-e2e.json",
                 "--runInBand"
             ],
             "console": "integratedTerminal",
@@ -105,7 +105,7 @@
     "compounds": [
         {
             "name": "调试所有应用",
-            "configurations": ["调试 Console 应用", "调试 Miniapp 应用"],
+            "configurations": ["调试 Console 应用", "调试 Miniprogram 应用"],
             "stopAll": true
         }
     ]

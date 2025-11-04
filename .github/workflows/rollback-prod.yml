@@ -216,7 +216,7 @@ jobs:
                   # 强制全量部署（回滚时不依赖变更检测）
                   export LAYER_CHANGED=true
                   export CONSOLE_CHANGED=true
-                  export MINIAPP_CHANGED=true
+                  export MINIPROGRAM_CHANGED=true
 
                   ./deployment/ci-deploy.sh
 
@@ -238,13 +238,13 @@ jobs:
                   CONSOLE_DB_SCHEMA: ${{ secrets.PROD_CONSOLE_DB_SCHEMA }}
                   CONSOLE_DB_USER: ${{ secrets.PROD_CONSOLE_DB_USER }}
                   CONSOLE_DB_PASSWORD: ${{ secrets.PROD_CONSOLE_DB_PASSWORD }}
-                  # Miniapp 应用数据库配置
-                  MINIAPP_DB_HOST: ${{ secrets.PROD_MINIAPP_DB_HOST }}
-                  MINIAPP_DB_PORT: ${{ secrets.PROD_MINIAPP_DB_PORT }}
-                  MINIAPP_DB_NAME: ${{ secrets.PROD_MINIAPP_DB_NAME }}
-                  MINIAPP_DB_SCHEMA: ${{ secrets.PROD_MINIAPP_DB_SCHEMA }}
-                  MINIAPP_DB_USER: ${{ secrets.PROD_MINIAPP_DB_USER }}
-                  MINIAPP_DB_PASSWORD: ${{ secrets.PROD_MINIAPP_DB_PASSWORD }}
+                  # Miniprogram 应用数据库配置
+                  MINIPROGRAM_DB_HOST: ${{ secrets.PROD_MINIPROGRAM_DB_HOST }}
+                  MINIPROGRAM_DB_PORT: ${{ secrets.PROD_MINIPROGRAM_DB_PORT }}
+                  MINIPROGRAM_DB_NAME: ${{ secrets.PROD_MINIPROGRAM_DB_NAME }}
+                  MINIPROGRAM_DB_SCHEMA: ${{ secrets.PROD_MINIPROGRAM_DB_SCHEMA }}
+                  MINIPROGRAM_DB_USER: ${{ secrets.PROD_MINIPROGRAM_DB_USER }}
+                  MINIPROGRAM_DB_PASSWORD: ${{ secrets.PROD_MINIPROGRAM_DB_PASSWORD }}
 
             - name: 更新 tags
               run: |

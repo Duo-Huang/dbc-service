@@ -30,7 +30,7 @@ export class UserRefreshToken {
         enum: ClientType,
         name: 'client_type',
         nullable: false,
-        comment: '客户端类型：miniapp-小程序，web-Web',
+        comment: '客户端类型：miniprogram-小程序，web-Web',
     })
     clientType: ClientType;
 

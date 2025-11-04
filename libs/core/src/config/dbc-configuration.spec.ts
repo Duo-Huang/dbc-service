@@ -2,7 +2,7 @@ import { plainToClass } from 'class-transformer';
 import { validate, validateSync } from 'class-validator';
 import {
     DbcConfiguration,
-    MiniappConfig,
+    MiniprogramConfig,
     ConsoleConfig,
     CorsConfig,
     ServerPortConfig,
@@ -301,8 +301,8 @@ describe('Configuration Validators', () => {
 });
 
 describe('Configuration Classes', () => {
-    describe('MiniappConfig', () => {
-        it('should validate a complete miniapp configuration', () => {
+    describe('MiniprogramConfig', () => {
+        it('should validate a complete miniprogram configuration', () => {
             const rawConfig = {
                 server: { port: 3000 },
                 cors: { origin: '*', credentials: true },
@@ -317,7 +317,7 @@ describe('Configuration Classes', () => {
                 logger: { level: 'info', prettyPrint: false },
             };
 
-            const config = plainToClass(MiniappConfig, rawConfig, {
+            const config = plainToClass(MiniprogramConfig, rawConfig, {
                 enableImplicitConversion: true,
             });
 
@@ -329,7 +329,7 @@ describe('Configuration Classes', () => {
             expect(config.logger).toBeInstanceOf(LoggerConfig);
         });
 
-        it('should reject invalid miniapp configuration', () => {
+        it('should reject invalid miniprogram configuration', () => {
             const rawConfig = {
                 server: { port: 100 }, // Invalid: port too small
                 cors: { origin: '*', credentials: true },
@@ -344,7 +344,7 @@ describe('Configuration Classes', () => {
                 logger: { level: 'info', prettyPrint: false },
             };
 
-            const config = plainToClass(MiniappConfig, rawConfig, {
+            const config = plainToClass(MiniprogramConfig, rawConfig, {
                 enableImplicitConversion: true,
             });
 
@@ -411,7 +411,7 @@ describe('Configuration Classes', () => {
     describe('DbcConfiguration', () => {
         it('should validate complete DBC configuration', () => {
             const rawConfig = {
-                [APP_NAMES.MINIAPP]: {
+                [APP_NAMES.MINIPROGRAM]: {
                     server: { port: 3000 },
                     cors: { origin: '*', credentials: true },
                     datasource: {
@@ -445,13 +445,15 @@ describe('Configuration Classes', () => {
 
             const errors = validateSync(config);
             expect(errors.length).toBe(0);
-            expect(config[APP_NAMES.MINIAPP]).toBeInstanceOf(MiniappConfig);
+            expect(config[APP_NAMES.MINIPROGRAM]).toBeInstanceOf(
+                MiniprogramConfig,
+            );
             expect(config[APP_NAMES.CONSOLE]).toBeInstanceOf(ConsoleConfig);
         });
 
         it('should reject invalid DBC configuration', () => {
             const rawConfig = {
-                [APP_NAMES.MINIAPP]: {
+                [APP_NAMES.MINIPROGRAM]: {
                     server: { port: 3000 },
                     cors: { origin: [], credentials: true }, // Invalid: empty array
                     datasource: {

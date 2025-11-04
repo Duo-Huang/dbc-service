@@ -46,14 +46,14 @@ echo "检测应用和 Layer 变更..."
 
 # 优先使用 GitHub Actions 传递的变更状态（通过环境变量）
 # 如果没有传递，则运行本地检测（用于本地部署）
-if [ -z "$LAYER_CHANGED" ] || [ -z "$CONSOLE_CHANGED" ] || [ -z "$MINIAPP_CHANGED" ]; then
+if [ -z "$LAYER_CHANGED" ] || [ -z "$CONSOLE_CHANGED" ] || [ -z "$MINIPROGRAM_CHANGED" ]; then
     echo "未检测到 GitHub Actions 的变更状态，运行本地检测..."
     source ./deployment/detect-changes.sh
 else
     echo "使用 GitHub Actions 的变更检测结果:"
     echo "  - Layer: $LAYER_CHANGED"
     echo "  - Console: $CONSOLE_CHANGED"
-    echo "  - Miniapp: $MINIAPP_CHANGED"
+    echo "  - Miniprogram: $MINIPROGRAM_CHANGED"
 fi
 
 # 显示部署信息
@@ -64,11 +64,11 @@ echo "======================================"
 echo "  环境 (STAGE): $STAGE"
 echo "  Layer 变更: $LAYER_CHANGED"
 echo "  Console 变更: $CONSOLE_CHANGED"
-echo "  Miniapp 变更: $MINIAPP_CHANGED"
+echo "  Miniprogram 变更: $MINIPROGRAM_CHANGED"
 echo "======================================"
 
 # 检查是否需要部署
-if [ "$LAYER_CHANGED" = "false" ] && [ "$CONSOLE_CHANGED" = "false" ] && [ "$MINIAPP_CHANGED" = "false" ]; then
+if [ "$LAYER_CHANGED" = "false" ] && [ "$CONSOLE_CHANGED" = "false" ] && [ "$MINIPROGRAM_CHANGED" = "false" ]; then
     echo "✅ 无需构建和部署，跳过"
     exit 0
 fi
@@ -123,8 +123,8 @@ if [ "$CONSOLE_CHANGED" = "true" ]; then
     deploy_app "console" "Console"
 fi
 
-if [ "$MINIAPP_CHANGED" = "true" ]; then
-    deploy_app "miniapp" "Miniapp"
+if [ "$MINIPROGRAM_CHANGED" = "true" ]; then
+    deploy_app "miniprogram" "Miniprogram"
 fi
 
 echo ""

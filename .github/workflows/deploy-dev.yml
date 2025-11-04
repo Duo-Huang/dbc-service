@@ -41,7 +41,7 @@ jobs:
             layer_changed: ${{ steps.detect.outputs.layer_changed }}
             shared_changed: ${{ steps.detect.outputs.shared_changed }}
             console_changed: ${{ steps.detect.outputs.console_changed }}
-            miniapp_changed: ${{ steps.detect.outputs.miniapp_changed }}
+            miniprogram_changed: ${{ steps.detect.outputs.miniprogram_changed }}
             deploy_ref: ${{ steps.set-ref.outputs.deploy_ref }}
         steps:
             - name: 设置部署引用
@@ -84,10 +84,10 @@ jobs:
                   echo "  Layer Changed:    ${{ steps.detect.outputs.layer_changed }}"
                   echo "  Shared Changed:   ${{ steps.detect.outputs.shared_changed }}"
                   echo "  Console Changed:  ${{ steps.detect.outputs.console_changed }}"
-                  echo "  Miniapp Changed:  ${{ steps.detect.outputs.miniapp_changed }}"
+                  echo "  Miniprogram Changed:  ${{ steps.detect.outputs.miniprogram_changed }}"
                   echo ""
                   echo "💡 说明:"
-                  echo "  - Console/Miniapp Changed 已包含 Shared 的影响"
+                  echo "  - Console/Miniprogram Changed 已包含 Shared 的影响"
                   echo "  - 调用者可直接使用这些状态做测试/部署决策"
 
     # ====================================
@@ -211,13 +211,13 @@ jobs:
               run: pnpm test:e2e:console
 
     # ====================================
-    # Miniapp E2E 测试（按需执行）
+    # Miniprogram E2E 测试（按需执行）
     # ====================================
-    e2e-miniapp:
-        name: Miniapp E2E 测试
+    e2e-miniprogram:
+        name: Miniprogram E2E 测试
         runs-on: ubuntu-latest
         needs: [detect-changes, build, lint, unit-test]
-        if: needs.detect-changes.outputs.miniapp_changed == 'true'
+        if: needs.detect-changes.outputs.miniprogram_changed == 'true'
         steps:
             - name: 检出代码
               uses: actions/checkout@v4
@@ -236,8 +236,8 @@ jobs:
             - name: 安装依赖
               run: pnpm install --frozen-lockfile
 
-            - name: 运行 Miniapp E2E 测试
-              run: pnpm test:e2e:miniapp
+            - name: 运行 Miniprogram E2E 测试
+              run: pnpm test:e2e:miniprogram
 
     # ====================================
     # 数据库迁移
@@ -246,7 +246,14 @@ jobs:
         name: 数据库迁移
         runs-on: ubuntu-latest
         needs:
-            [detect-changes, build, lint, unit-test, e2e-console, e2e-miniapp]
+            [
+                detect-changes,
+                build,
+                lint,
+                unit-test,
+                e2e-console,
+                e2e-miniprogram,
+            ]
         if: |
             !contains(needs.*.result, 'failure') &&
             !contains(needs.*.result, 'cancelled')
@@ -291,12 +298,12 @@ jobs:
                 lint,
                 unit-test,
                 e2e-console,
-                e2e-miniapp,
+                e2e-miniprogram,
                 migration-dev,
             ]
         if: |
             (needs.detect-changes.outputs.console_changed == 'true' ||
-             needs.detect-changes.outputs.miniapp_changed == 'true' ||
+             needs.detect-changes.outputs.miniprogram_changed == 'true' ||
              needs.detect-changes.outputs.layer_changed == 'true') &&
             !contains(needs.*.result, 'failure') &&
             !contains(needs.*.result, 'cancelled')
@@ -350,7 +357,7 @@ jobs:
                   # 传递变更检测结果，避免重复检测
                   LAYER_CHANGED: ${{ needs.detect-changes.outputs.layer_changed }}
                   CONSOLE_CHANGED: ${{ needs.detect-changes.outputs.console_changed }}
-                  MINIAPP_CHANGED: ${{ needs.detect-changes.outputs.miniapp_changed }}
+                  MINIPROGRAM_CHANGED: ${{ needs.detect-changes.outputs.miniprogram_changed }}
                   # 腾讯云凭证
                   TENCENT_SECRET_ID: ${{ secrets.DEV_TENCENT_SECRET_ID }}
                   TENCENT_SECRET_KEY: ${{ secrets.DEV_TENCENT_SECRET_KEY }}
@@ -363,13 +370,13 @@ jobs:
                   CONSOLE_DB_SCHEMA: ${{ secrets.DEV_CONSOLE_DB_SCHEMA }}
                   CONSOLE_DB_USER: ${{ secrets.DEV_CONSOLE_DB_USER }}
                   CONSOLE_DB_PASSWORD: ${{ secrets.DEV_CONSOLE_DB_PASSWORD }}
-                  # Miniapp 应用数据库配置
-                  MINIAPP_DB_HOST: ${{ secrets.DEV_MINIAPP_DB_HOST }}
-                  MINIAPP_DB_PORT: ${{ secrets.DEV_MINIAPP_DB_PORT }}
-                  MINIAPP_DB_NAME: ${{ secrets.DEV_MINIAPP_DB_NAME }}
-                  MINIAPP_DB_SCHEMA: ${{ secrets.DEV_MINIAPP_DB_SCHEMA }}
-                  MINIAPP_DB_USER: ${{ secrets.DEV_MINIAPP_DB_USER }}
-                  MINIAPP_DB_PASSWORD: ${{ secrets.DEV_MINIAPP_DB_PASSWORD }}
+                  # Miniprogram 应用数据库配置
+                  MINIPROGRAM_DB_HOST: ${{ secrets.DEV_MINIPROGRAM_DB_HOST }}
+                  MINIPROGRAM_DB_PORT: ${{ secrets.DEV_MINIPROGRAM_DB_PORT }}
+                  MINIPROGRAM_DB_NAME: ${{ secrets.DEV_MINIPROGRAM_DB_NAME }}
+                  MINIPROGRAM_DB_SCHEMA: ${{ secrets.DEV_MINIPROGRAM_DB_SCHEMA }}
+                  MINIPROGRAM_DB_USER: ${{ secrets.DEV_MINIPROGRAM_DB_USER }}
+                  MINIPROGRAM_DB_PASSWORD: ${{ secrets.DEV_MINIPROGRAM_DB_PASSWORD }}
 
             - name: 更新 DEV 部署标签
               run: |
@@ -389,7 +396,7 @@ jobs:
 
                   Changes:
                   - Console: ${{ needs.detect-changes.outputs.console_changed }}
-                  - Miniapp: ${{ needs.detect-changes.outputs.miniapp_changed }}
+                  - Miniprogram: ${{ needs.detect-changes.outputs.miniprogram_changed }}
                   - Layer: ${{ needs.detect-changes.outputs.layer_changed }}"
 
                   git push -f origin ${{ env.DEV_TAG }}

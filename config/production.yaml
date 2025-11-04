@@ -1,4 +1,4 @@
-miniapp:
+miniprogram:
     server:
         port: 9000
     cors:

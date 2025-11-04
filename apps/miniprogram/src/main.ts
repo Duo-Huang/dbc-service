@@ -3,7 +3,7 @@ import {
     FastifyAdapter,
     NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { MiniappModule } from './miniapp.module';
+import { MiniprogramModule } from './miniprogram.module';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import { VersioningType } from '@nestjs/common';
@@ -19,11 +19,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // 设置应用名称，供配置模块使用
-process.env.APP_NAME = APP_NAMES.MINIAPP;
+process.env.APP_NAME = APP_NAMES.MINIPROGRAM;
 
 async function bootstrap() {
     const app = await NestFactory.create<NestFastifyApplication>(
-        MiniappModule,
+        MiniprogramModule,
         new FastifyAdapter(),
         {
             bufferLogs: true,

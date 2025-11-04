@@ -75,7 +75,7 @@
 1. 安装依赖：`pnpm install`
 2. 启动数据库：`docker compose up -d`
 3. 运行迁移：`pnpm migration run`
-4. 启动开发服务：`pnpm start:dev:console` 或 `pnpm start:dev:miniapp`
+4. 启动开发服务：`pnpm start:dev:console` 或 `pnpm start:dev:miniprogram`
 5. 调试应用：按 `F5` 或查看 [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
 
 ### 配置管理

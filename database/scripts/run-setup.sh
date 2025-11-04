@@ -54,7 +54,7 @@ ADMIN_PASS=your_secure_admin_password
 
 # 各用户密码
 MIGRATOR_PASS=your_secure_migrator_password
-MINIAPP_PASS=your_secure_miniapp_password
+MINIPROGRAM_PASS=your_secure_miniprogram_password
 CONSOLE_PASS=your_secure_console_password
 READONLY_PASS=your_secure_readonly_password
 
@@ -84,7 +84,7 @@ load_env() {
     set +a
 
     # 检查必需变量
-    local required_vars=("ADMIN_PASS" "MIGRATOR_PASS" "MINIAPP_PASS" "CONSOLE_PASS" "READONLY_PASS" "DB_NAME" "DB_HOST" "DB_PORT")
+    local required_vars=("ADMIN_PASS" "MIGRATOR_PASS" "MINIPROGRAM_PASS" "CONSOLE_PASS" "READONLY_PASS" "DB_NAME" "DB_HOST" "DB_PORT")
     for var in "${required_vars[@]}"; do
         if [ -z "${!var:-}" ]; then
             log_error "缺少必需的环境变量: $var"
@@ -118,7 +118,7 @@ run_setup() {
         -v db_name="$DB_NAME" \
         -v migration_user=dbc_migrator -v migration_password="'$MIGRATOR_PASS'" \
         -v app_write_role=dbc_app_writer -v app_read_role=dbc_app_reader \
-        -v miniapp_user=dbc_miniapp_writer -v miniapp_password="'$MINIAPP_PASS'" \
+        -v miniprogram_user=dbc_miniprogram_writer -v miniprogram_password="'$MINIPROGRAM_PASS'" \
         -v console_user=dbc_console_writer -v console_password="'$CONSOLE_PASS'" \
         -v readonly_user=dbc_readonly -v readonly_password="'$READONLY_PASS'" \
         -v schema_name=dbc \
@@ -142,7 +142,7 @@ show_usage() {
     echo "环境变量文件格式:"
     echo "  ADMIN_PASS=your_admin_password"
     echo "  MIGRATOR_PASS=your_migrator_password"
-    echo "  MINIAPP_PASS=your_miniapp_password"
+    echo "  MINIPROGRAM_PASS=your_miniprogram_password"
     echo "  CONSOLE_PASS=your_console_password"
     echo "  READONLY_PASS=your_readonly_password"
     echo "  DB_NAME=dbc_local"

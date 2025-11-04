@@ -38,14 +38,14 @@ libs/core/src/constants/
 每个应用有独立且完整的配置节点，包含 `server`、`datasource` 和 `logger` 配置：
 
 ```yaml
-miniapp:
+miniprogram:
     server:
         port: 3000
     datasource:
         host: localhost
         port: 5433
         database: dbc_local
-        username: dbc_miniapp_writer
+        username: dbc_miniprogram_writer
         password: dbc.local.123
     logger:
         level: debug # trace|debug|info|warn|error|fatal
@@ -69,9 +69,9 @@ console:
 
 **重要特性：**
 
-- ✅ `miniapp` 使用 `MiniappConfig` 类，`console` 使用 `ConsoleConfig` 类
+- ✅ `miniprogram` 使用 `MiniprogramConfig` 类，`console` 使用 `ConsoleConfig` 类
 - ✅ 两个配置类完全独立，互不耦合
-- ✅ 支持未来添加应用特有配置（如 `miniapp.wechat`、`console.session`）
+- ✅ 支持未来添加应用特有配置（如 `miniprogram.wechat`、`console.session`）
 - ✅ 配置加载函数直接返回完整的配置对象
 
 **配置隔离机制：**
@@ -83,13 +83,13 @@ console:
 **示例：**
 
 ```typescript
-// miniapp 代码中
+// miniprogram 代码中
 configService.get('server.port'); // ✅ 3000
 configService.get('wechat.appId'); // 未来可添加
 
 // console 代码中
 configService.get('server.port'); // ✅ 4000
-configService.get('wechat.appId'); // undefined（miniapp 特有配置）
+configService.get('wechat.appId'); // undefined（miniprogram 特有配置）
 ```
 
 ---
@@ -126,10 +126,10 @@ configService.get('wechat.appId'); // undefined（miniapp 特有配置）
 **示例：**
 
 ```bash
-# default.yaml 定义 miniapp.server.port = 3000
+# default.yaml 定义 miniprogram.server.port = 3000
 # production.yaml 覆盖为 9000
 # 环境变量可进一步覆盖
-export MINIAPP_SERVER_PORT=8080
+export MINIPROGRAM_SERVER_PORT=8080
 ```
 
 ---
@@ -141,9 +141,9 @@ export MINIAPP_SERVER_PORT=8080
 在 `custom-environment-variables.yaml` 中定义映射：
 
 ```yaml
-miniapp:
+miniprogram:
     server:
-        port: MINIAPP_SERVER_PORT
+        port: MINIPROGRAM_SERVER_PORT
 
 console:
     server:
@@ -153,7 +153,7 @@ console:
 ### 使用方式
 
 ```bash
-export MINIAPP_SERVER_PORT=8080
+export MINIPROGRAM_SERVER_PORT=8080
 export CONSOLE_SERVER_PORT=9000
 ```
 
@@ -186,8 +186,8 @@ export class SomeService {
 
 **重要说明：**
 
-- ✅ `main.ts` 中通过 `process.env.APP_NAME = APP_NAMES.MINIAPP` 设置应用名称
-- ✅ 使用扁平化路径：`server.port` 而非 `miniapp.server.port`
+- ✅ `main.ts` 中通过 `process.env.APP_NAME = APP_NAMES.MINIPROGRAM` 设置应用名称
+- ✅ 使用扁平化路径：`server.port` 而非 `miniprogram.server.port`
 - ✅ NestJS ConfigService 不支持直接获取整个配置对象，需分别获取各个配置项
 
 ### 应用入口设置
@@ -195,10 +195,10 @@ export class SomeService {
 每个应用的 `main.ts` 必须在最开头设置 `APP_NAME`：
 
 ```typescript
-// apps/miniapp/src/main.ts
+// apps/miniprogram/src/main.ts
 import { APP_NAMES } from '@dbc/core';
 
-process.env.APP_NAME = APP_NAMES.MINIAPP; // 必须在第一行
+process.env.APP_NAME = APP_NAMES.MINIPROGRAM; // 必须在第一行
 
 async function bootstrap() {
     // ...
@@ -216,14 +216,14 @@ async function bootstrap() {
 **default.yaml:**
 
 ```yaml
-miniapp:
+miniprogram:
     server:
         port: 3000
     datasource:
         host: localhost
         port: 5433
         database: dbc_local
-        username: dbc_miniapp_writer
+        username: dbc_miniprogram_writer
         password: dbc.local.123
     logger:
         level: debug
@@ -233,7 +233,7 @@ miniapp:
 **development.yaml:**
 
 ```yaml
-miniapp:
+miniprogram:
     logger:
         level: debug
         prettyPrint: true
@@ -244,7 +244,7 @@ miniapp:
 **production.yaml:**
 
 ```yaml
-miniapp:
+miniprogram:
     server:
         port: 9000
     logger:
@@ -259,7 +259,7 @@ miniapp:
 ### 1. 无效的日志级别
 
 ```yaml
-miniapp:
+miniprogram:
     logger:
         level: verbose # ❌ 不是有效的 Pino level
 ```
@@ -267,13 +267,13 @@ miniapp:
 **错误信息：**
 
 ```
-Error: 配置验证失败: miniapp.logger.level: level 必须是以下值之一: trace, debug, info, warn, error, fatal
+Error: 配置验证失败: miniprogram.logger.level: level 必须是以下值之一: trace, debug, info, warn, error, fatal
 ```
 
 ### 2. 无效的端口号
 
 ```yaml
-miniapp:
+miniprogram:
     server:
         port: 80 # ❌ 小于 3000
 ```
@@ -281,13 +281,13 @@ miniapp:
 **错误信息：**
 
 ```
-Error: 配置验证失败: miniapp.server.port: 端口号必须大于等于 3000
+Error: 配置验证失败: miniprogram.server.port: 端口号必须大于等于 3000
 ```
 
 ### 3. 缺少必需字段
 
 ```yaml
-miniapp:
+miniprogram:
     datasource:
         host: localhost
         port: 5433
@@ -297,7 +297,7 @@ miniapp:
 **错误信息：**
 
 ```
-Error: 配置验证失败: miniapp.datasource.database: database不能为空; miniapp.datasource.username: username不能为空
+Error: 配置验证失败: miniprogram.datasource.database: database不能为空; miniprogram.datasource.username: username不能为空
 ```
 
 ---
@@ -323,7 +323,7 @@ export class CacheConfig {
 }
 
 // 在两个配置类中都添加
-export class MiniappConfig {
+export class MiniprogramConfig {
     // ... 现有字段
 
     @ValidateNested()
@@ -343,7 +343,7 @@ export class ConsoleConfig {
 2. **更新配置文件**
 
 ```yaml
-miniapp:
+miniprogram:
     # ... 现有配置
     cache:
         ttl: 3600
@@ -364,9 +364,9 @@ const cacheTtl = this.configService.get<number>('cache.ttl');
 
 ### 添加应用特有配置
 
-**场景：只有 miniapp 需要微信配置**
+**场景：只有 miniprogram 需要微信配置**
 
-1. **定义配置类（只在 MiniappConfig 中添加）**
+1. **定义配置类（只在 MiniprogramConfig 中添加）**
 
 ```typescript
 export class WechatConfig {
@@ -379,21 +379,21 @@ export class WechatConfig {
     appSecret: string;
 }
 
-export class MiniappConfig {
+export class MiniprogramConfig {
     // ... 现有字段
 
     @ValidateNested()
     @Type(() => WechatConfig)
-    wechat: WechatConfig; // miniapp 特有
+    wechat: WechatConfig; // miniprogram 特有
 }
 
 // ConsoleConfig 不需要修改
 ```
 
-2. **只在 miniapp 配置中添加**
+2. **只在 miniprogram 配置中添加**
 
 ```yaml
-miniapp:
+miniprogram:
     # ... 现有配置
     wechat:
         appId: wx1234567890
@@ -403,10 +403,10 @@ console:
     # ... 现有配置（不需要 wechat）
 ```
 
-3. **只在 miniapp 代码中使用**
+3. **只在 miniprogram 代码中使用**
 
 ```typescript
-// miniapp 服务中
+// miniprogram 服务中
 const appId = this.configService.get<string>('wechat.appId'); // ✅
 
 // console 服务中访问返回 undefined（自然隔离）
@@ -436,7 +436,7 @@ const appId = this.configService.get<string>('wechat.appId'); // undefined
 ### 配置获取返回 undefined
 
 1. 确认 `APP_NAME` 在 `main.ts` 开头正确设置
-2. 使用扁平化路径：`server.port` 而非 `miniapp.server.port`
+2. 使用扁平化路径：`server.port` 而非 `miniprogram.server.port`
 3. 检查配置文件中是否定义了该配置项
 
 ### 环境变量未生效

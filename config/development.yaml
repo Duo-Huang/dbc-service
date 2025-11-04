@@ -1,4 +1,4 @@
-miniapp:
+miniprogram:
     server:
         port: 3000
     cors:
@@ -9,7 +9,7 @@ miniapp:
         port: 5433
         database: dbc_local
         schema: dbc
-        username: dbc_miniapp_writer
+        username: dbc_miniprogram_writer
         password: dbc.local.123
     logger:
         level: debug

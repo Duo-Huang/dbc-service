@@ -41,11 +41,11 @@ export class User {
     @Column({
         type: 'varchar',
         length: 64,
-        name: 'open_id_miniapp',
+        name: 'open_id_miniprogram',
         unique: true,
         comment: '小程序OpenID',
     })
-    openIdMiniapp: string;
+    openIdMiniprogram: string;
 
     @Column({
         type: 'varchar',

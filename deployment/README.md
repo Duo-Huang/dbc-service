@@ -17,7 +17,7 @@ deployment/
 ├── console/                    # Console 应用部署配置
 │   ├── scf_bootstrap           # 启动脚本
 │   └── serverless.yml          # 服务配置
-├── miniapp/                    # Miniapp 应用部署配置
+├── miniprogram/                # Miniprogram 应用部署配置
 │   ├── scf_bootstrap           # 启动脚本
 │   └── serverless.yml          # 服务配置
 └── layers/                     # Layer 配置
@@ -51,7 +51,7 @@ git push origin main
 
 阶段 3：按需 E2E 测试（并行）
   ├─ Console E2E（如有变更）
-  └─ Miniapp E2E（如有变更）
+  └─ Miniprogram E2E（如有变更）
 
 阶段 4：智能部署
   ├─ 下载构建产物（复用）
@@ -80,7 +80,7 @@ pnpm build
 
 **工作原理：**
 
-- 脚本会自动检测变更（Layer、Console、Miniapp）
+- 脚本会自动检测变更（Layer、Console、Miniprogram）
 - 根据检测结果自动决定部署什么
 - 只部署有变更的组件
 
@@ -96,9 +96,9 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 
 **环境变量：**
 
-| 变量               | 说明                                                          |
-| ------------------ | ------------------------------------------------------------- |
-| `FORCE_BUILD=true` | 跳过变更检测，强制构建和部署所有（Layer + Console + Miniapp） |
+| 变量               | 说明                                                              |
+| ------------------ | ----------------------------------------------------------------- |
+| `FORCE_BUILD=true` | 跳过变更检测，强制构建和部署所有（Layer + Console + Miniprogram） |
 
 **脚本会自动完成**：
 
@@ -120,7 +120,7 @@ fi
 
 # 应用变更：检测应用目录变更
 git diff HEAD~1 HEAD --name-only | grep '^apps/console/'  # Console
-git diff HEAD~1 HEAD --name-only | grep '^apps/miniapp/'  # Miniapp
+git diff HEAD~1 HEAD --name-only | grep '^apps/miniprogram/'  # Miniprogram
 
 # 共享变更：检测共享代码（影响所有应用）
 git diff HEAD~1 HEAD --name-only | grep -E '^(libs/|config/|...)'
@@ -198,17 +198,17 @@ export CONSOLE_SERVER_PORT=9000
 SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/console/main.js
 ```
 
-**Miniapp 应用启动脚本** (`miniapp/scf_bootstrap`)：
+**Miniprogram 应用启动脚本** (`miniprogram/scf_bootstrap`)：
 
 ```bash
 #!/bin/bash
 
 # 设置环境变量
 export NODE_ENV=production
-export MINIAPP_SERVER_PORT=9000
+export MINIPROGRAM_SERVER_PORT=9000
 
 # 启动 NestJS 应用
-SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/miniapp/main.js
+SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/miniprogram/main.js
 ```
 
 **关键配置：**
@@ -223,11 +223,11 @@ SERVERLESS=1 /var/lang/node20.19/bin/node ./dist/apps/miniapp/main.js
 
 可以在启动脚本中设置环境变量：
 
-| 变量                  | 说明         | 默认值     |
-| --------------------- | ------------ | ---------- |
-| `NODE_ENV`            | 运行环境     | production |
-| `CONSOLE_SERVER_PORT` | Console 端口 | 9000       |
-| `MINIAPP_SERVER_PORT` | Miniapp 端口 | 9000       |
+| 变量                      | 说明             | 默认值     |
+| ------------------------- | ---------------- | ---------- |
+| `NODE_ENV`                | 运行环境         | production |
+| `CONSOLE_SERVER_PORT`     | Console 端口     | 9000       |
+| `MINIPROGRAM_SERVER_PORT` | Miniprogram 端口 | 9000       |
 
 在 `scf_bootstrap` 中添加：
 
@@ -288,7 +288,7 @@ export YOUR_ENV_VAR=value
 ## 💡 最佳实践
 
 1. **使用 CI/CD**: 生产环境部署仅通过 CI/CD，避免手动操作
-2. **独立部署**: Console 和 Miniapp 完全独立，可单独部署和回滚
+2. **独立部署**: Console 和 Miniprogram 完全独立，可单独部署和回滚
 3. **版本管理**: 给部署包添加版本标签
 4. **监控告警**: 配置云函数监控和日志告警
 5. **灰度发布**: 使用 API 网关流量管理功能

@@ -101,16 +101,16 @@ node --version  # 应该输出 v20.19.5
 | `DEV_CONSOLE_DB_USER`     | 数据库用户名  |
 | `DEV_CONSOLE_DB_PASSWORD` | 数据库密码    |
 
-**DEV 环境 - Miniapp 应用：**
+**DEV 环境 - Miniprogram 应用：**
 
-| 变量名                    | 说明          |
-| ------------------------- | ------------- |
-| `DEV_MINIAPP_DB_HOST`     | 数据库主机    |
-| `DEV_MINIAPP_DB_PORT`     | 数据库端口    |
-| `DEV_MINIAPP_DB_NAME`     | 数据库名称    |
-| `DEV_MINIAPP_DB_SCHEMA`   | 数据库 Schema |
-| `DEV_MINIAPP_DB_USER`     | 数据库用户名  |
-| `DEV_MINIAPP_DB_PASSWORD` | 数据库密码    |
+| 变量名                        | 说明          |
+| ----------------------------- | ------------- |
+| `DEV_MINIPROGRAM_DB_HOST`     | 数据库主机    |
+| `DEV_MINIPROGRAM_DB_PORT`     | 数据库端口    |
+| `DEV_MINIPROGRAM_DB_NAME`     | 数据库名称    |
+| `DEV_MINIPROGRAM_DB_SCHEMA`   | 数据库 Schema |
+| `DEV_MINIPROGRAM_DB_USER`     | 数据库用户名  |
+| `DEV_MINIPROGRAM_DB_PASSWORD` | 数据库密码    |
 
 **PROD 环境 - Console 应用：**
 
@@ -123,16 +123,16 @@ node --version  # 应该输出 v20.19.5
 | `PROD_CONSOLE_DB_USER`     | 数据库用户名  |
 | `PROD_CONSOLE_DB_PASSWORD` | 数据库密码    |
 
-**PROD 环境 - Miniapp 应用：**
+**PROD 环境 - Miniprogram 应用：**
 
-| 变量名                     | 说明          |
-| -------------------------- | ------------- |
-| `PROD_MINIAPP_DB_HOST`     | 数据库主机    |
-| `PROD_MINIAPP_DB_PORT`     | 数据库端口    |
-| `PROD_MINIAPP_DB_NAME`     | 数据库名称    |
-| `PROD_MINIAPP_DB_SCHEMA`   | 数据库 Schema |
-| `PROD_MINIAPP_DB_USER`     | 数据库用户名  |
-| `PROD_MINIAPP_DB_PASSWORD` | 数据库密码    |
+| 变量名                         | 说明          |
+| ------------------------------ | ------------- |
+| `PROD_MINIPROGRAM_DB_HOST`     | 数据库主机    |
+| `PROD_MINIPROGRAM_DB_PORT`     | 数据库端口    |
+| `PROD_MINIPROGRAM_DB_NAME`     | 数据库名称    |
+| `PROD_MINIPROGRAM_DB_SCHEMA`   | 数据库 Schema |
+| `PROD_MINIPROGRAM_DB_USER`     | 数据库用户名  |
+| `PROD_MINIPROGRAM_DB_PASSWORD` | 数据库密码    |
 
 ### GitHub Actions 自动提供
 
@@ -144,12 +144,12 @@ node --version  # 应该输出 v20.19.5
 
 ### 应用运行时环境变量
 
-| 变量名                | 说明             | 默认值        | 配置位置            |
-| --------------------- | ---------------- | ------------- | ------------------- |
-| `NODE_ENV`            | 运行环境         | `development` | 启动脚本            |
-| `CONSOLE_SERVER_PORT` | Console 应用端口 | `5000`        | config/default.yaml |
-| `MINIAPP_SERVER_PORT` | Miniapp 应用端口 | `6000`        | config/default.yaml |
-| `APP_NAME`            | 应用名称         | -             | 代码中自动设置      |
+| 变量名                    | 说明                 | 默认值        | 配置位置            |
+| ------------------------- | -------------------- | ------------- | ------------------- |
+| `NODE_ENV`                | 运行环境             | `development` | 启动脚本            |
+| `CONSOLE_SERVER_PORT`     | Console 应用端口     | `5000`        | config/default.yaml |
+| `MINIPROGRAM_SERVER_PORT` | Miniprogram 应用端口 | `6000`        | config/default.yaml |
+| `APP_NAME`                | 应用名称             | -             | 代码中自动设置      |
 
 ### 数据库环境变量（可选）
 
@@ -206,13 +206,13 @@ node --version  # 应该输出 v20.19.5
     - `DEV_CONSOLE_DB_USER`
     - `DEV_CONSOLE_DB_PASSWORD`
 
-    **Miniapp 应用数据库：**
-    - `DEV_MINIAPP_DB_HOST`
-    - `DEV_MINIAPP_DB_PORT`
-    - `DEV_MINIAPP_DB_NAME`
-    - `DEV_MINIAPP_DB_SCHEMA`
-    - `DEV_MINIAPP_DB_USER`
-    - `DEV_MINIAPP_DB_PASSWORD`
+    **Miniprogram 应用数据库：**
+    - `DEV_MINIPROGRAM_DB_HOST`
+    - `DEV_MINIPROGRAM_DB_PORT`
+    - `DEV_MINIPROGRAM_DB_NAME`
+    - `DEV_MINIPROGRAM_DB_SCHEMA`
+    - `DEV_MINIPROGRAM_DB_USER`
+    - `DEV_MINIPROGRAM_DB_PASSWORD`
 
 4. **创建 PROD 环境**
     - 返回 Environments，点击 "New environment"
@@ -234,8 +234,8 @@ node --version  # 应该输出 v20.19.5
     **Console 应用数据库：**
     - `PROD_CONSOLE_DB_HOST`, `PROD_CONSOLE_DB_PORT`, `PROD_CONSOLE_DB_NAME`, etc.
 
-    **Miniapp 应用数据库：**
-    - `PROD_MINIAPP_DB_HOST`, `PROD_MINIAPP_DB_PORT`, `PROD_MINIAPP_DB_NAME`, etc.
+    **Miniprogram 应用数据库：**
+    - `PROD_MINIPROGRAM_DB_HOST`, `PROD_MINIPROGRAM_DB_PORT`, `PROD_MINIPROGRAM_DB_NAME`, etc.
 
 #### 优势
 
@@ -281,7 +281,7 @@ node --version  # 应该输出 v20.19.5
 
     # 应用端口
     CONSOLE_SERVER_PORT=5000
-    MINIAPP_SERVER_PORT=6000
+    MINIPROGRAM_SERVER_PORT=6000
 
     # 数据库配置（可选）
     DATABASE_HOST=localhost
@@ -332,12 +332,12 @@ node --version  # 应该输出 v20.19.5
             {
                 "type": "node",
                 "request": "launch",
-                "name": "Debug Miniapp",
+                "name": "Debug Miniprogram",
                 "runtimeExecutable": "pnpm",
-                "runtimeArgs": ["run", "start:debug:miniapp"],
+                "runtimeArgs": ["run", "start:debug:miniprogram"],
                 "env": {
                     "NODE_ENV": "development",
-                    "MINIAPP_SERVER_PORT": "6000"
+                    "MINIPROGRAM_SERVER_PORT": "6000"
                 }
             }
         ]
@@ -472,7 +472,7 @@ config/secrets.yaml
     # .env.example
     NODE_ENV=development
     CONSOLE_SERVER_PORT=5000
-    MINIAPP_SERVER_PORT=6000
+    MINIPROGRAM_SERVER_PORT=6000
 
     # 数据库配置
     DATABASE_HOST=localhost

@@ -43,7 +43,7 @@ export class UserService {
 ```bash
 # 开发环境（美化输出）
 pnpm run start:dev:console
-pnpm run start:dev:miniapp
+pnpm run start:dev:miniprogram
 
 # 生产环境（JSON输出）
 NODE_ENV=production pnpm run start:prod:console
@@ -205,7 +205,7 @@ export class UserService {
 
 配置文件位于 `config/` 目录，每个应用有独立的日志配置：
 
-**Miniapp 应用:**
+**Miniprogram 应用:**
 
 | 环境     | 配置文件           | level   | prettyPrint |
 | -------- | ------------------ | ------- | ----------- |
@@ -219,7 +219,7 @@ export class UserService {
 | 开发环境 | `development.yaml` | `debug` | `true`      |
 | 生产环境 | `production.yaml`  | `warn`  | `false`     |
 
-配置路径：`miniapp.logger.*` 和 `console.logger.*`
+配置路径：`miniprogram.logger.*` 和 `console.logger.*`
 
 ### 可用级别
 

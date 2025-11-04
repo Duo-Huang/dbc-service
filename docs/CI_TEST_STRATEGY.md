@@ -84,18 +84,18 @@
 
 #### 触发规则
 
-| 变更内容             | Console E2E | Miniapp E2E |
-| -------------------- | ----------- | ----------- |
-| `apps/console/`      | ✅          | ❌          |
-| `apps/miniapp/`      | ❌          | ✅          |
-| `libs/` 或 `config/` | ✅          | ✅          |
-| 其他文件             | ❌          | ❌          |
+| 变更内容             | Console E2E | Miniprogram E2E |
+| -------------------- | ----------- | --------------- |
+| `apps/console/`      | ✅          | ❌              |
+| `apps/miniprogram/`  | ❌          | ✅              |
+| `libs/` 或 `config/` | ✅          | ✅              |
+| 其他文件             | ❌          | ❌              |
 
 #### 为什么按需执行？
 
 1. **E2E 测试较慢**: 每个 app 需要 1-2 秒启动
 2. **资源密集**: 需要初始化完整应用（配置、日志、数据库连接等）
-3. **隔离性强**: Console 和 Miniapp 是独立应用
+3. **隔离性强**: Console 和 Miniprogram 是独立应用
 
 ### 4. 定期全量测试
 
@@ -126,7 +126,7 @@
   ↓
 第三阶段：E2E 测试（按需并行）
   ├─ Console E2E（如果 Console 有变更）
-  └─ Miniapp E2E（如果 Miniapp 有变更）
+  └─ Miniprogram E2E（如果 Miniprogram 有变更）
   ↓
 第四阶段：数据库迁移
   └─ 运行 migration（DEV 数据库）
@@ -158,7 +158,7 @@
   ├─ Lint
   ├─ 单元测试
   ├─ Console E2E（按需）
-  └─ Miniapp E2E（按需）
+  └─ Miniprogram E2E（按需）
   ↓
 第三阶段：数据库迁移
   └─ 运行 migration（PROD 数据库）
@@ -286,14 +286,14 @@ fi
       # 传递变更检测结果，避免重复检测
       LAYER_CHANGED: ${{ needs.detect-changes.outputs.layer_changed }}
       CONSOLE_CHANGED: ${{ needs.detect-changes.outputs.console_changed }}
-      MINIAPP_CHANGED: ${{ needs.detect-changes.outputs.miniapp_changed }}
+      MINIPROGRAM_CHANGED: ${{ needs.detect-changes.outputs.miniprogram_changed }}
 ```
 
 部署脚本 `ci-deploy.sh` 优先使用传入的环境变量：
 
 ```bash
 # 优先使用 GitHub Actions 传递的变更状态
-if [ -z "$LAYER_CHANGED" ] || [ -z "$CONSOLE_CHANGED" ] || [ -z "$MINIAPP_CHANGED" ]; then
+if [ -z "$LAYER_CHANGED" ] || [ -z "$CONSOLE_CHANGED" ] || [ -z "$MINIPROGRAM_CHANGED" ]; then
     # 如果没有传递，则运行本地检测（用于本地部署）
     source ./deployment/detect-changes.sh
 else
@@ -317,16 +317,16 @@ fi
 # 1. 检测 Layer（依赖）
 # 2. 检测 Shared（共享代码）
 # 3. 检测 Console（应用代码）
-# 4. 检测 Miniapp（应用代码）
+# 4. 检测 Miniprogram（应用代码）
 # 5. 处理变更影响关系
 
 # 影响关系处理：
-# - SHARED_CHANGED=true → 强制 CONSOLE_CHANGED=true, MINIAPP_CHANGED=true
-# - LAYER_CHANGED=true → 强制 CONSOLE_CHANGED=true, MINIAPP_CHANGED=true
+# - SHARED_CHANGED=true → 强制 CONSOLE_CHANGED=true, MINIPROGRAM_CHANGED=true
+# - LAYER_CHANGED=true → 强制 CONSOLE_CHANGED=true, MINIPROGRAM_CHANGED=true
 
 # 最终结果：
 # CONSOLE_CHANGED = (apps/console/ 有变更) OR (shared 有变更) OR (layer 有变更)
-# MINIAPP_CHANGED = (apps/miniapp/ 有变更) OR (shared 有变更) OR (layer 有变更)
+# MINIPROGRAM_CHANGED = (apps/miniprogram/ 有变更) OR (shared 有变更) OR (layer 有变更)
 ```
 
 这样设计的好处：
@@ -349,8 +349,8 @@ pnpm test:e2e
 # 只测试 Console
 pnpm test:e2e:console
 
-# 只测试 Miniapp
-pnpm test:e2e:miniapp
+# 只测试 Miniprogram
+pnpm test:e2e:miniprogram
 
 # 运行所有测试（单元 + E2E）
 pnpm test:all
@@ -369,7 +369,7 @@ pnpm test:e2e:cov
 # - LAYER_CHANGED: 依赖是否变更
 # - SHARED_CHANGED: 共享代码是否变更 (libs/, config/ 等)
 # - CONSOLE_CHANGED: Console 应用是否需要关注（已包含 shared 影响）
-# - MINIAPP_CHANGED: Miniapp 应用是否需要关注（已包含 shared 影响）
+# - MINIPROGRAM_CHANGED: Miniprogram 应用是否需要关注（已包含 shared 影响）
 
 # 调用者可以直接使用这些状态做测试/部署决策
 ```
@@ -430,16 +430,16 @@ pnpm test:e2e:cov
 
 ```yaml
 detect-changes: # 第1阶段：变更检测
-    └─ 输出: layer_changed, console_changed, miniapp_changed
+    └─ 输出: layer_changed, console_changed, miniprogram_changed
 
 build + lint + unit-test: # 第2阶段：并行执行
     ├─ build: 构建并上传 artifact
     ├─ lint: 代码检查
     └─ unit-test: 单元测试
 
-e2e-console + e2e-miniapp: # 第3阶段：按需并行
+e2e-console + e2e-miniprogram: # 第3阶段：按需并行
     ├─ e2e-console: 如果 console_changed=true
-    └─ e2e-miniapp: 如果 miniapp_changed=true
+    └─ e2e-miniprogram: 如果 miniprogram_changed=true
 
 deploy: # 第4阶段：部署（仅 push 事件）
     └─ 下载 artifact 并部署
@@ -461,7 +461,7 @@ deploy: # 第4阶段：部署（仅 push 事件）
 
 ### 开发时
 
-1. ✅ 提交前运行 `pnpm test:e2e:console` 或 `pnpm test:e2e:miniapp`
+1. ✅ 提交前运行 `pnpm test:e2e:console` 或 `pnpm test:e2e:miniprogram`
 2. ✅ 修改共享代码（libs/）时运行 `pnpm test:all`
 3. ✅ 利用 `pnpm test:e2e:watch` 进行开发
 
@@ -485,7 +485,7 @@ deploy: # 第4阶段：部署（仅 push 事件）
 # 本地验证变更检测
 ./deployment/detect-changes.sh
 
-# 检查输出的 TEST_CONSOLE 和 TEST_MINIAPP
+# 检查输出的 TEST_CONSOLE 和 TEST_MINIPROGRAM
 ```
 
 ### 定期测试失败

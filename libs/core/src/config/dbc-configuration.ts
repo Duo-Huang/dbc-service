@@ -205,10 +205,10 @@ export class DatasourceConfig {
 }
 
 /**
- * Miniapp 应用配置类
- * 独立的配置类，支持未来添加 miniapp 特有配置
+ * Miniprogram 应用配置类
+ * 独立的配置类，支持未来添加 miniprogram 特有配置
  */
-export class MiniappConfig {
+export class MiniprogramConfig {
     @ValidateNested()
     @Type(() => ServerPortConfig)
     server: ServerPortConfig;
@@ -225,7 +225,7 @@ export class MiniappConfig {
     @Type(() => LoggerConfig)
     logger: LoggerConfig;
 
-    // 未来可以添加 miniapp 特有配置，例如：
+    // 未来可以添加 miniprogram 特有配置，例如：
     // @ValidateNested()
     // @Type(() => WechatConfig)
     // wechat?: WechatConfig;
@@ -262,15 +262,15 @@ export class ConsoleConfig {
  * DBC 应用配置类
  * 全局配置对象，包含所有应用配置
  *
- * 注意：miniapp 和 console 使用独立的配置类，完全解耦
+ * miniprogram 和 console 使用独立的配置类，完全解耦
  * 每个应用可以拥有各自特有的配置字段
  *
  * 属性名与 APP_NAMES 常量值保持一致，确保类型安全
  */
 export class DbcConfiguration {
     @ValidateNested()
-    @Type(() => MiniappConfig)
-    [APP_NAMES.MINIAPP]: MiniappConfig;
+    @Type(() => MiniprogramConfig)
+    [APP_NAMES.MINIPROGRAM]: MiniprogramConfig;
 
     @ValidateNested()
     @Type(() => ConsoleConfig)
@@ -282,8 +282,8 @@ export class DbcConfiguration {
  * 自动按优先级加载配置：环境变量 > 环境特定配置文件 > default.yaml
  *
  * 根据 APP_NAME 环境变量返回对应应用的完整配置
- * - 直接返回 MiniappConfig 或 ConsoleConfig 对象
- * - 支持未来差异化配置（如 miniapp 的 wechat，console 的 session）
+ * - 直接返回 MiniprogramConfig 或 ConsoleConfig 对象
+ * - 支持未来差异化配置（如 miniprogram 的 wechat，console 的 session）
  * - 访问不存在的配置字段会返回 undefined，实现自然隔离
  */
 export default () => {

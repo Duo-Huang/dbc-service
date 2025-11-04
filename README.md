@@ -8,7 +8,7 @@
 dbc/
 ├── apps/
 │   ├── console/          # 管理后台应用
-│   └── miniapp/          # 小程序后端应用
+│   └── miniprogram/          # 小程序后端应用
 ├── libs/
 │   ├── auth/             # 认证模块
 │   └── core/             # 核心模块
@@ -20,7 +20,7 @@ dbc/
 │   └── tsconfig.json     # Migration TypeScript 配置
 ├── deployment/           # 部署配置和脚本
 │   ├── console/          # Console 服务配置
-│   ├── miniapp/          # Miniapp 服务配置
+│   ├── miniprogram/      # miniprogram 服务配置
 │   ├── layers/           # Layer 配置
 │   ├── build-layer.sh    # Layer 构建脚本
 │   ├── ci-deploy.sh      # 部署主脚本
@@ -61,7 +61,7 @@ dbc/
 5. **启动应用**：
     ```bash
     pnpm run start:dev:console    # Console 应用
-    pnpm run start:dev:miniapp    # Miniapp 应用
+    pnpm run start:dev:miniprogram    # Miniprogram 应用
     ```
 
 **说明**：
@@ -92,14 +92,14 @@ pnpm migration run
 ```bash
 # 构建项目
 pnpm build                    # 构建所有应用
-pnpm build:console           # 单独构建 Console
-pnpm build:miniapp           # 单独构建 Miniapp
+pnpm build:console            # 单独构建 Console
+pnpm build:miniprogram        # 单独构建 Miniprogram
 
 # 运行测试
-pnpm test                     # 单元测试
+pnpm test                    # 单元测试
 pnpm test:e2e                # 所有 E2E 测试
 pnpm test:e2e:console        # 仅 Console E2E 测试
-pnpm test:e2e:miniapp        # 仅 Miniapp E2E 测试
+pnpm test:e2e:miniprogram    # 仅 <iniprogram E2E 测试
 pnpm test:cov                # 单元测试覆盖率
 pnpm test:e2e:cov            # E2E 测试覆盖率
 
@@ -189,7 +189,7 @@ FORCE_BUILD=true ./deployment/ci-deploy.sh
 
 **工作原理**：
 
-- 自动检测 Layer、Console、Miniapp 变更
+- 自动检测 Layer、Console、Miniprogram 变更
 - 根据检测结果自动部署相应组件
 - Layer 使用版本管理，自动递增
 
@@ -215,7 +215,7 @@ cp .env.example .env
 
 ## 项目特性
 
-- ✅ **Monorepo 架构** - 多应用统一管理（Console / Miniapp）
+- ✅ **Monorepo 架构** - 多应用统一管理（Console / Miniprogram）
 - ✅ **PostgreSQL 数据库** - Docker Compose 配置，自动化初始化脚本
 - ✅ **Pino 日志系统** - 高性能结构化日志，自动 HTTP 请求记录
 - ✅ **配置管理** - 多环境配置支持，类型安全验证

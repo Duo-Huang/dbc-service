@@ -1,13 +1,13 @@
-miniapp:
+miniprogram:
     server:
-        port: MINIAPP_SERVER_PORT
+        port: MINIPROGRAM_SERVER_PORT
     datasource:
-        host: MINIAPP_DB_HOST
-        port: MINIAPP_DB_PORT
-        database: MINIAPP_DB_NAME
-        schema: MINIAPP_DB_SCHEMA
-        username: MINIAPP_DB_USER
-        password: MINIAPP_DB_PASSWORD
+        host: MINIPROGRAM_DB_HOST
+        port: MINIPROGRAM_DB_PORT
+        database: MINIPROGRAM_DB_NAME
+        schema: MINIPROGRAM_DB_SCHEMA
+        username: MINIPROGRAM_DB_USER
+        password: MINIPROGRAM_DB_PASSWORD
 
 console:
     server:
