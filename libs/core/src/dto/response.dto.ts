@@ -1,4 +1,4 @@
-import { ErrorCodeType } from '@dbc/core/constants/error-code.constant';
+import { ErrorCodeType } from '@dbc/core/constants/error-code';
 
 /**
  * 统一响应体 DTO

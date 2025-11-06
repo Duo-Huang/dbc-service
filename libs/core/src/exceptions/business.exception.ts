@@ -1,4 +1,4 @@
-import { ErrorCodeType } from '@dbc/core/constants/error-code.constant';
+import { ErrorCodeType } from '@dbc/core/constants/error-code';
 
 /**
  * 业务异常基类

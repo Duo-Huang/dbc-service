@@ -1,7 +1,7 @@
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { PinoLogger } from 'nestjs-pino';
-import { ERROR_CODE } from '@dbc/core/constants/error-code.constant';
+import { ERROR_CODE } from '@dbc/core/constants/error-code';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
 describe('AllExceptionsFilter', () => {

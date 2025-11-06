@@ -7,7 +7,7 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { ERROR_CODE } from '@dbc/core/constants/error-code.constant';
+import { ERROR_CODE } from '@dbc/core/constants/error-code';
 import { HTTP_ERROR_CODE } from '@dbc/core/constants';
 import { ResponseDto } from '@dbc/core/dto/response.dto';
 import { PinoLogger } from 'nestjs-pino';

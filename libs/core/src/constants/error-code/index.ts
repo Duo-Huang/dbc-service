@@ -7,32 +7,12 @@
  * 第 2 位表示错误是哪个业务模块：例如：1 为用户模块，2 为名片模块，3 展位模块, 可标记 9 个业务模块。
  * 第 3 位和第 4 位表示具体是什么错误：例如：01 为手机号不合法，02 为验证码输入错误，可标记 99 个错误。
  */
+import { SYSTEM_ERROR_CODE } from './system-error-code.constant';
+import { USER_ERROR_CODE } from './user-error-code.constant';
 
 export const ERROR_CODE = {
-    // 系统级错误 1xxx (发生在全局范围内或者不确定具体地方)
-    SYSTEM_ERROR_001: {
-        code: 1001,
-        msg: '未知错误',
-    },
-    SYSTEM_ERROR_002: {
-        // 处理所有未被全局处理器处理的异常
-        code: 1002,
-        msg: '请求出错了',
-    },
-    SYSTEM_ERROR_003: {
-        code: 1003,
-        msg: '请求参数错误', // 全局参数校验的fallback消息
-    },
-
-    // 用户模块错误 21xx
-    USER_ERROR_101: {
-        code: 2101,
-        msg: '用户未认证',
-    },
-    USER_ERROR_102: {
-        code: 2102,
-        msg: '无权限访问',
-    },
+    ...SYSTEM_ERROR_CODE,
+    ...USER_ERROR_CODE,
 } as const;
 
 /**
