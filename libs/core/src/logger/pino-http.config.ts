@@ -35,7 +35,7 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
                 level: (label: string) => {
                     return { level: label };
                 },
-                bindings: (bindings: Record<string, unknown>) => {
+                bindings: (bindings) => {
                     // 选择性移除 pid 和 hostname，保留其他 bindings
                     const {
                         pid: _,
@@ -50,7 +50,7 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
             timestamp: () => `,"time":"${formatLocalTime()}"`,
             // 自定义请求/响应序列化器
             serializers: {
-                req(req: IncomingMessage & { id?: string | number }) {
+                req(req: IncomingMessage) {
                     return {
                         id: req.id,
                         method: req.method,
@@ -62,14 +62,12 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
                         // remotePort: req.remotePort,
                     };
                 },
-                res(res: ServerResponse & { statusCode: number }) {
+                res(res: ServerResponse) {
                     return {
                         statusCode: res.statusCode,
                     };
                 },
                 // 自定义 Error 序列化器
-                // 生产环境：代码已压缩混淆，stack trace 无实际意义，故移除
-                // 依赖 type + errorCode + message + 上下文信息定位问题
                 // err(err: Error) {
                 //     // 移除 stack，保留其他所有属性（包括 errorCode）
                 //     const { stack: _, ...rest } = err;
@@ -79,14 +77,18 @@ export function createPinoHttpConfig(configService: ConfigService): Params {
                 //     };
                 // },
             },
-            // 自动记录所有HTTP请求
-            autoLogging: true,
+            // 自动记录所有HTTP请求, 默认是INFO级别
+            // autoLogging: true,
+            autoLogging: {
+                ignore: (req) => {
+                    if (req.url?.includes('/health')) {
+                        return true;
+                    }
+                    return false;
+                },
+            },
             // 根据HTTP状态码自动调整日志级别
-            customLogLevel: function (
-                req: IncomingMessage,
-                res: ServerResponse & { statusCode: number },
-                err?: Error,
-            ) {
+            customLogLevel: function (req, res, err) {
                 if (res.statusCode >= 400 && res.statusCode < 500) {
                     return 'warn';
                 } else if (res.statusCode >= 500 || err) {

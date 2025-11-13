@@ -6,7 +6,7 @@ import {
     HttpStatus,
     Injectable,
 } from '@nestjs/common';
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyReply } from 'fastify';
 import { ERROR_CODE } from '@dbc/core/constants/error-code';
 import { HTTP_ERROR_CODE } from '@dbc/core/constants';
 import { ResponseDto } from '@dbc/core/dto/response.dto';
@@ -36,7 +36,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
-        const request = ctx.getRequest<FastifyRequest>();
+        // const request = ctx.getRequest<FastifyRequest>();
         const response = ctx.getResponse<FastifyReply>();
 
         // 处理 NestJS 的 HttpException
@@ -91,8 +91,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
                     exception instanceof Error
                         ? exception
                         : new Error(String(exception)),
-                method: request.method,
-                url: request.url,
             },
             'Unexpected exception',
         );
