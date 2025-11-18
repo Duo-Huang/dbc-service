@@ -112,6 +112,26 @@ node --version  # 应该输出 v20.19.5
 | `DEV_MINIPROGRAM_DB_USER`     | 数据库用户名  |
 | `DEV_MINIPROGRAM_DB_PASSWORD` | 数据库密码    |
 
+**DEV 环境 - Console 应用缓存：**
+
+| 变量名                       | 说明         |
+| ---------------------------- | ------------ |
+| `DEV_CONSOLE_CACHE_HOST`     | Redis 主机   |
+| `DEV_CONSOLE_CACHE_PORT`     | Redis 端口   |
+| `DEV_CONSOLE_CACHE_USERNAME` | Redis 用户名 |
+| `DEV_CONSOLE_CACHE_PASSWORD` | Redis 密码   |
+| `DEV_CONSOLE_CACHE_TTL`      | 缓存过期时间 |
+
+**DEV 环境 - Miniprogram 应用缓存：**
+
+| 变量名                           | 说明         |
+| -------------------------------- | ------------ |
+| `DEV_MINIPROGRAM_CACHE_HOST`     | Redis 主机   |
+| `DEV_MINIPROGRAM_CACHE_PORT`     | Redis 端口   |
+| `DEV_MINIPROGRAM_CACHE_USERNAME` | Redis 用户名 |
+| `DEV_MINIPROGRAM_CACHE_PASSWORD` | Redis 密码   |
+| `DEV_MINIPROGRAM_CACHE_TTL`      | 缓存过期时间 |
+
 **PROD 环境 - Console 应用：**
 
 | 变量名                     | 说明          |
@@ -133,6 +153,26 @@ node --version  # 应该输出 v20.19.5
 | `PROD_MINIPROGRAM_DB_SCHEMA`   | 数据库 Schema |
 | `PROD_MINIPROGRAM_DB_USER`     | 数据库用户名  |
 | `PROD_MINIPROGRAM_DB_PASSWORD` | 数据库密码    |
+
+**PROD 环境 - Console 应用缓存：**
+
+| 变量名                        | 说明         |
+| ----------------------------- | ------------ |
+| `PROD_CONSOLE_CACHE_HOST`     | Redis 主机   |
+| `PROD_CONSOLE_CACHE_PORT`     | Redis 端口   |
+| `PROD_CONSOLE_CACHE_USERNAME` | Redis 用户名 |
+| `PROD_CONSOLE_CACHE_PASSWORD` | Redis 密码   |
+| `PROD_CONSOLE_CACHE_TTL`      | 缓存过期时间 |
+
+**PROD 环境 - Miniprogram 应用缓存：**
+
+| 变量名                            | 说明         |
+| --------------------------------- | ------------ |
+| `PROD_MINIPROGRAM_CACHE_HOST`     | Redis 主机   |
+| `PROD_MINIPROGRAM_CACHE_PORT`     | Redis 端口   |
+| `PROD_MINIPROGRAM_CACHE_USERNAME` | Redis 用户名 |
+| `PROD_MINIPROGRAM_CACHE_PASSWORD` | Redis 密码   |
+| `PROD_MINIPROGRAM_CACHE_TTL`      | 缓存过期时间 |
 
 ### GitHub Actions 自动提供
 
@@ -162,6 +202,30 @@ node --version  # 应该输出 v20.19.5
 | `DATABASE_USER`     | 数据库用户 | `database.username` |
 | `DATABASE_PASSWORD` | 数据库密码 | `database.password` |
 | `DATABASE_NAME`     | 数据库名称 | `database.database` |
+
+### 缓存环境变量（可选）
+
+通过 `config/custom-environment-variables.yaml` 映射：
+
+**Console 应用：**
+
+| 变量名                   | 说明         | 配置映射         |
+| ------------------------ | ------------ | ---------------- |
+| `CONSOLE_CACHE_HOST`     | Redis 主机   | `cache.host`     |
+| `CONSOLE_CACHE_PORT`     | Redis 端口   | `cache.port`     |
+| `CONSOLE_CACHE_USERNAME` | Redis 用户名 | `cache.username` |
+| `CONSOLE_CACHE_PASSWORD` | Redis 密码   | `cache.password` |
+| `CONSOLE_CACHE_TTL`      | 缓存过期时间 | `cache.ttl`      |
+
+**Miniprogram 应用：**
+
+| 变量名                       | 说明         | 配置映射         |
+| ---------------------------- | ------------ | ---------------- |
+| `MINIPROGRAM_CACHE_HOST`     | Redis 主机   | `cache.host`     |
+| `MINIPROGRAM_CACHE_PORT`     | Redis 端口   | `cache.port`     |
+| `MINIPROGRAM_CACHE_USERNAME` | Redis 用户名 | `cache.username` |
+| `MINIPROGRAM_CACHE_PASSWORD` | Redis 密码   | `cache.password` |
+| `MINIPROGRAM_CACHE_TTL`      | 缓存过期时间 | `cache.ttl`      |
 
 ---
 
@@ -214,6 +278,20 @@ node --version  # 应该输出 v20.19.5
     - `DEV_MINIPROGRAM_DB_USER`
     - `DEV_MINIPROGRAM_DB_PASSWORD`
 
+    **Console 应用缓存：**
+    - `DEV_CONSOLE_CACHE_HOST`
+    - `DEV_CONSOLE_CACHE_PORT`
+    - `DEV_CONSOLE_CACHE_USERNAME`
+    - `DEV_CONSOLE_CACHE_PASSWORD`
+    - `DEV_CONSOLE_CACHE_TTL`
+
+    **Miniprogram 应用缓存：**
+    - `DEV_MINIPROGRAM_CACHE_HOST`
+    - `DEV_MINIPROGRAM_CACHE_PORT`
+    - `DEV_MINIPROGRAM_CACHE_USERNAME`
+    - `DEV_MINIPROGRAM_CACHE_PASSWORD`
+    - `DEV_MINIPROGRAM_CACHE_TTL`
+
 4. **创建 PROD 环境**
     - 返回 Environments，点击 "New environment"
     - Name: `prod`
@@ -236,6 +314,20 @@ node --version  # 应该输出 v20.19.5
 
     **Miniprogram 应用数据库：**
     - `PROD_MINIPROGRAM_DB_HOST`, `PROD_MINIPROGRAM_DB_PORT`, `PROD_MINIPROGRAM_DB_NAME`, etc.
+
+    **Console 应用缓存：**
+    - `PROD_CONSOLE_CACHE_HOST`
+    - `PROD_CONSOLE_CACHE_PORT`
+    - `PROD_CONSOLE_CACHE_USERNAME`
+    - `PROD_CONSOLE_CACHE_PASSWORD`
+    - `PROD_CONSOLE_CACHE_TTL`
+
+    **Miniprogram 应用缓存：**
+    - `PROD_MINIPROGRAM_CACHE_HOST`
+    - `PROD_MINIPROGRAM_CACHE_PORT`
+    - `PROD_MINIPROGRAM_CACHE_USERNAME`
+    - `PROD_MINIPROGRAM_CACHE_PASSWORD`
+    - `PROD_MINIPROGRAM_CACHE_TTL`
 
 #### 优势
 
@@ -289,6 +381,19 @@ node --version  # 应该输出 v20.19.5
     DATABASE_USER=postgres
     DATABASE_PASSWORD=your-password
     DATABASE_NAME=dbc_dev
+
+    # 缓存配置（可选）
+    CONSOLE_CACHE_HOST=localhost
+    CONSOLE_CACHE_PORT=6379
+    CONSOLE_CACHE_USERNAME=default
+    CONSOLE_CACHE_PASSWORD=your-redis-password
+    CONSOLE_CACHE_TTL=1800000
+
+    MINIPROGRAM_CACHE_HOST=localhost
+    MINIPROGRAM_CACHE_PORT=6379
+    MINIPROGRAM_CACHE_USERNAME=default
+    MINIPROGRAM_CACHE_PASSWORD=your-redis-password
+    MINIPROGRAM_CACHE_TTL=1800000
 
     # 腾讯云凭证（本地部署时需要）
     TENCENT_SECRET_ID=your-secret-id
@@ -480,6 +585,19 @@ config/secrets.yaml
     DATABASE_USER=
     DATABASE_PASSWORD=
     DATABASE_NAME=
+
+    # 缓存配置
+    CONSOLE_CACHE_HOST=localhost
+    CONSOLE_CACHE_PORT=6379
+    CONSOLE_CACHE_USERNAME=default
+    CONSOLE_CACHE_PASSWORD=
+    CONSOLE_CACHE_TTL=1800000
+
+    MINIPROGRAM_CACHE_HOST=localhost
+    MINIPROGRAM_CACHE_PORT=6379
+    MINIPROGRAM_CACHE_USERNAME=default
+    MINIPROGRAM_CACHE_PASSWORD=
+    MINIPROGRAM_CACHE_TTL=1800000
 
     # 腾讯云凭证（仅本地部署需要）
     TENCENT_SECRET_ID=

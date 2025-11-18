@@ -14,6 +14,12 @@ miniprogram:
     logger:
         level: debug
         prettyPrint: true
+    cache:
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000
 
 console:
     server:
@@ -31,3 +37,9 @@ console:
     logger:
         level: debug
         prettyPrint: true
+    cache:
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000

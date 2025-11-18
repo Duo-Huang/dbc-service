@@ -35,7 +35,7 @@ libs/core/src/constants/
 
 ## ⚙️ 配置结构
 
-每个应用有独立且完整的配置节点，包含 `server`、`datasource` 和 `logger` 配置：
+每个应用有独立且完整的配置节点，包含 `server`、`datasource`、`logger` 和 `cache` 配置：
 
 ```yaml
 miniprogram:
@@ -45,11 +45,18 @@ miniprogram:
         host: localhost
         port: 5433
         database: dbc_local
+        schema: dbc
         username: dbc_miniprogram_writer
         password: dbc.local.123
     logger:
         level: debug # trace|debug|info|warn|error|fatal
         prettyPrint: true # 开发环境美化输出
+    cache:
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000 # 缓存过期时间（毫秒）
 
 console:
     server:
@@ -58,11 +65,18 @@ console:
         host: localhost
         port: 5433
         database: dbc_local
+        schema: dbc
         username: dbc_console_writer
         password: dbc.local.123
     logger:
         level: debug
         prettyPrint: true
+    cache:
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000 # 缓存过期时间（毫秒）
 ```
 
 ### 配置类型解耦
@@ -113,6 +127,14 @@ configService.get('wechat.appId'); // undefined（miniprogram 特有配置）
 - `level`: 必须是 Pino 定义的有效级别之一（trace/debug/info/warn/error/fatal）
 - `prettyPrint`: 必须是布尔值
 
+### 缓存配置（Cache）
+
+- `host`: 必须是有效的 IP 地址或域名（支持 IPv4/IPv6/FQDN，包括 `localhost`）
+- `port`: 必须是数字，范围 1024 - 49151
+- `username`: 字符串（Redis 用户名，通常为 `default`）
+- `password`: 字符串（Redis 密码）
+- `ttl`: 必须是数字，大于等于 0（缓存过期时间，单位：毫秒）
+
 ---
 
 ## 🔧 配置优先级
@@ -144,17 +166,59 @@ export MINIPROGRAM_SERVER_PORT=8080
 miniprogram:
     server:
         port: MINIPROGRAM_SERVER_PORT
+    datasource:
+        host: MINIPROGRAM_DB_HOST
+        port: MINIPROGRAM_DB_PORT
+        database: MINIPROGRAM_DB_NAME
+        schema: MINIPROGRAM_DB_SCHEMA
+        username: MINIPROGRAM_DB_USER
+        password: MINIPROGRAM_DB_PASSWORD
+    cache:
+        host: MINIPROGRAM_CACHE_HOST
+        port: MINIPROGRAM_CACHE_PORT
+        username: MINIPROGRAM_CACHE_USERNAME
+        password: MINIPROGRAM_CACHE_PASSWORD
+        ttl: MINIPROGRAM_CACHE_TTL
 
 console:
     server:
         port: CONSOLE_SERVER_PORT
+    datasource:
+        host: CONSOLE_DB_HOST
+        port: CONSOLE_DB_PORT
+        database: CONSOLE_DB_NAME
+        schema: CONSOLE_DB_SCHEMA
+        username: CONSOLE_DB_USER
+        password: CONSOLE_DB_PASSWORD
+    cache:
+        host: CONSOLE_CACHE_HOST
+        port: CONSOLE_CACHE_PORT
+        username: CONSOLE_CACHE_USERNAME
+        password: CONSOLE_CACHE_PASSWORD
+        ttl: CONSOLE_CACHE_TTL
 ```
 
 ### 使用方式
 
 ```bash
+# 服务器端口
 export MINIPROGRAM_SERVER_PORT=8080
 export CONSOLE_SERVER_PORT=9000
+
+# 数据库配置
+export MINIPROGRAM_DB_HOST=localhost
+export MINIPROGRAM_DB_PORT=5433
+export MINIPROGRAM_DB_NAME=dbc_local
+export MINIPROGRAM_DB_SCHEMA=dbc
+export MINIPROGRAM_DB_USER=dbc_miniprogram_writer
+export MINIPROGRAM_DB_PASSWORD=your-password
+
+# 缓存配置
+export MINIPROGRAM_CACHE_HOST=localhost
+export MINIPROGRAM_CACHE_PORT=6379
+export MINIPROGRAM_CACHE_USERNAME=default
+export MINIPROGRAM_CACHE_PASSWORD=your-redis-password
+export MINIPROGRAM_CACHE_TTL=1800000
 ```
 
 ---
@@ -178,8 +242,10 @@ export class SomeService {
         const port = this.configService.get<number>('server.port');
         const host = this.configService.get<string>('datasource.host');
         const level = this.configService.get<string>('logger.level', 'info');
+        const cacheHost = this.configService.get<string>('cache.host');
+        const cacheTtl = this.configService.get<number>('cache.ttl');
 
-        return { port, host, level };
+        return { port, host, level, cacheHost, cacheTtl };
     }
 }
 ```
@@ -223,11 +289,18 @@ miniprogram:
         host: localhost
         port: 5433
         database: dbc_local
+        schema: dbc
         username: dbc_miniprogram_writer
         password: dbc.local.123
     logger:
         level: debug
         prettyPrint: true
+    cache:
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000
 ```
 
 **development.yaml:**
@@ -237,6 +310,12 @@ miniprogram:
     logger:
         level: debug
         prettyPrint: true
+    cache:
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000
 ```
 
 ### 生产环境
@@ -250,6 +329,12 @@ miniprogram:
     logger:
         level: warn
         prettyPrint: false
+    cache:
+        host: replace_me
+        port: replace_me
+        username: replace_me
+        password: replace_me
+        ttl: 1800000
 ```
 
 ---
@@ -306,7 +391,7 @@ Error: 配置验证失败: miniprogram.datasource.database: database不能为空
 
 ### 添加公共配置（两个应用都需要）
 
-如果要添加两个应用都需要的配置（如缓存配置）：
+如果要添加两个应用都需要的配置（如新的缓存配置字段）：
 
 1. **定义配置类**
 
@@ -314,12 +399,23 @@ Error: 配置验证失败: miniprogram.datasource.database: database不能为空
 // libs/core/src/config/dbc-configuration.ts
 
 export class CacheConfig {
+    @IsHostname()
+    host: string;
+
+    @IsNumber()
+    @Min(1024)
+    @Max(49151)
+    port: number;
+
+    @IsString()
+    username: string;
+
+    @IsString()
+    password: string;
+
     @IsNumber()
     @Min(0)
     ttl: number;
-
-    @IsBoolean()
-    enabled: boolean;
 }
 
 // 在两个配置类中都添加
@@ -346,19 +442,41 @@ export class ConsoleConfig {
 miniprogram:
     # ... 现有配置
     cache:
-        ttl: 3600
-        enabled: true
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000
 
 console:
     # ... 现有配置
     cache:
-        ttl: 3600
-        enabled: true
+        host: localhost
+        port: 6379
+        username: default
+        password: redis.local.123
+        ttl: 1800000
 ```
 
-3. **在代码中使用**
+3. **更新环境变量映射**
+
+在 `config/custom-environment-variables.yaml` 中添加：
+
+```yaml
+miniprogram:
+    cache:
+        host: MINIPROGRAM_CACHE_HOST
+        port: MINIPROGRAM_CACHE_PORT
+        username: MINIPROGRAM_CACHE_USERNAME
+        password: MINIPROGRAM_CACHE_PASSWORD
+        ttl: MINIPROGRAM_CACHE_TTL
+```
+
+4. **在代码中使用**
 
 ```typescript
+const cacheHost = this.configService.get<string>('cache.host');
+const cachePort = this.configService.get<number>('cache.port');
 const cacheTtl = this.configService.get<number>('cache.ttl');
 ```
 

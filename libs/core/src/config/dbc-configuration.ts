@@ -205,6 +205,29 @@ export class DatasourceConfig {
 }
 
 /**
+ * 缓存配置类
+ */
+export class CacheConfig {
+    @IsHostname()
+    host: string;
+
+    @IsNumber()
+    @Min(1024, { message: '端口号必须大于等于 1024' })
+    @Max(49151, { message: '端口号必须小于等于 49151' })
+    port: number;
+
+    @IsString()
+    username: string;
+
+    @IsString()
+    password: string;
+
+    @IsNumber()
+    @Min(0, { message: 'ttl 必须大于等于 0' })
+    ttl: number;
+}
+
+/**
  * Miniprogram 应用配置类
  * 独立的配置类，支持未来添加 miniprogram 特有配置
  */
@@ -224,6 +247,10 @@ export class MiniprogramConfig {
     @ValidateNested()
     @Type(() => LoggerConfig)
     logger: LoggerConfig;
+
+    @ValidateNested()
+    @Type(() => CacheConfig)
+    cache: CacheConfig;
 
     // 未来可以添加 miniprogram 特有配置，例如：
     // @ValidateNested()
@@ -251,6 +278,10 @@ export class ConsoleConfig {
     @ValidateNested()
     @Type(() => LoggerConfig)
     logger: LoggerConfig;
+
+    @ValidateNested()
+    @Type(() => CacheConfig)
+    cache: CacheConfig;
 
     // 未来可以添加 console 特有配置，例如：
     // @ValidateNested()

@@ -8,6 +8,7 @@ import {
     ServerPortConfig,
     DatasourceConfig,
     LoggerConfig,
+    CacheConfig,
 } from './dbc-configuration';
 import { APP_NAMES } from '../constants';
 
@@ -315,6 +316,13 @@ describe('Configuration Classes', () => {
                     password: 'pass',
                 },
                 logger: { level: 'info', prettyPrint: false },
+                cache: {
+                    host: 'localhost',
+                    port: 6379,
+                    username: 'default',
+                    password: 'pass',
+                    ttl: 1800000,
+                },
             };
 
             const config = plainToClass(MiniprogramConfig, rawConfig, {
@@ -327,6 +335,7 @@ describe('Configuration Classes', () => {
             expect(config.cors).toBeInstanceOf(CorsConfig);
             expect(config.datasource).toBeInstanceOf(DatasourceConfig);
             expect(config.logger).toBeInstanceOf(LoggerConfig);
+            expect(config.cache).toBeInstanceOf(CacheConfig);
         });
 
         it('should reject invalid miniprogram configuration', () => {
@@ -342,6 +351,13 @@ describe('Configuration Classes', () => {
                     password: 'pass',
                 },
                 logger: { level: 'info', prettyPrint: false },
+                cache: {
+                    host: 'localhost',
+                    port: 6379,
+                    username: 'default',
+                    password: 'pass',
+                    ttl: 1800000,
+                },
             };
 
             const config = plainToClass(MiniprogramConfig, rawConfig, {
@@ -370,6 +386,13 @@ describe('Configuration Classes', () => {
                     password: 'pass',
                 },
                 logger: { level: 'debug', prettyPrint: true },
+                cache: {
+                    host: '192.168.1.1',
+                    port: 6379,
+                    username: 'default',
+                    password: 'pass',
+                    ttl: 1800000,
+                },
             };
 
             const config = plainToClass(ConsoleConfig, rawConfig, {
@@ -382,6 +405,7 @@ describe('Configuration Classes', () => {
             expect(config.cors).toBeInstanceOf(CorsConfig);
             expect(config.datasource).toBeInstanceOf(DatasourceConfig);
             expect(config.logger).toBeInstanceOf(LoggerConfig);
+            expect(config.cache).toBeInstanceOf(CacheConfig);
         });
 
         it('should reject invalid console configuration', () => {
@@ -397,6 +421,13 @@ describe('Configuration Classes', () => {
                     password: 'pass',
                 },
                 logger: { level: 'info', prettyPrint: false },
+                cache: {
+                    host: 'localhost',
+                    port: 6379,
+                    username: 'default',
+                    password: 'pass',
+                    ttl: 1800000,
+                },
             };
 
             const config = plainToClass(ConsoleConfig, rawConfig, {
@@ -423,6 +454,13 @@ describe('Configuration Classes', () => {
                         password: 'pass',
                     },
                     logger: { level: 'info', prettyPrint: false },
+                    cache: {
+                        host: 'localhost',
+                        port: 6379,
+                        username: 'default',
+                        password: 'pass',
+                        ttl: 1800000,
+                    },
                 },
                 [APP_NAMES.CONSOLE]: {
                     server: { port: 4000 },
@@ -436,6 +474,13 @@ describe('Configuration Classes', () => {
                         password: 'pass',
                     },
                     logger: { level: 'debug', prettyPrint: true },
+                    cache: {
+                        host: 'localhost',
+                        port: 6379,
+                        username: 'default',
+                        password: 'pass',
+                        ttl: 1800000,
+                    },
                 },
             };
 
@@ -465,6 +510,13 @@ describe('Configuration Classes', () => {
                         password: 'pass',
                     },
                     logger: { level: 'info', prettyPrint: false },
+                    cache: {
+                        host: 'localhost',
+                        port: 6379,
+                        username: 'default',
+                        password: 'pass',
+                        ttl: 1800000,
+                    },
                 },
                 [APP_NAMES.CONSOLE]: {
                     server: { port: 4000 },
@@ -478,6 +530,13 @@ describe('Configuration Classes', () => {
                         password: 'pass',
                     },
                     logger: { level: 'debug', prettyPrint: true },
+                    cache: {
+                        host: 'localhost',
+                        port: 6379,
+                        username: 'default',
+                        password: 'pass',
+                        ttl: 1800000,
+                    },
                 },
             };
 
@@ -554,6 +613,102 @@ describe('Configuration Classes', () => {
             });
             const errors = validateSync(config);
             expect(errors.length).toBeGreaterThan(0);
+        });
+
+        it('should validate nested cache config', () => {
+            const config = plainToClass(CacheConfig, {
+                host: 'localhost',
+                port: 6379,
+                username: 'default',
+                password: 'pass',
+                ttl: 1800000,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBe(0);
+        });
+
+        it('should validate cache config with IPv4 address', () => {
+            const config = plainToClass(CacheConfig, {
+                host: '192.168.1.1',
+                port: 6379,
+                username: 'default',
+                password: 'pass',
+                ttl: 1800000,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBe(0);
+        });
+
+        it('should validate cache config with IPv6 address', () => {
+            const config = plainToClass(CacheConfig, {
+                host: '::1',
+                port: 6379,
+                username: 'default',
+                password: 'pass',
+                ttl: 1800000,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBe(0);
+        });
+
+        it('should reject invalid cache host', () => {
+            const config = plainToClass(CacheConfig, {
+                host: '',
+                port: 6379,
+                username: 'default',
+                password: 'pass',
+                ttl: 1800000,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBeGreaterThan(0);
+        });
+
+        it('should reject invalid cache port (too small)', () => {
+            const config = plainToClass(CacheConfig, {
+                host: 'localhost',
+                port: 100,
+                username: 'default',
+                password: 'pass',
+                ttl: 1800000,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBeGreaterThan(0);
+        });
+
+        it('should reject invalid cache port (too large)', () => {
+            const config = plainToClass(CacheConfig, {
+                host: 'localhost',
+                port: 65535,
+                username: 'default',
+                password: 'pass',
+                ttl: 1800000,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBeGreaterThan(0);
+        });
+
+        it('should reject negative ttl', () => {
+            const config = plainToClass(CacheConfig, {
+                host: 'localhost',
+                port: 6379,
+                username: 'default',
+                password: 'pass',
+                ttl: -1,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBeGreaterThan(0);
+        });
+
+        it('should accept zero ttl', () => {
+            const config = plainToClass(CacheConfig, {
+                host: 'localhost',
+                port: 6379,
+                username: 'default',
+                password: 'pass',
+                ttl: 0,
+            });
+            const errors = validateSync(config);
+            expect(errors.length).toBe(0);
         });
     });
 });

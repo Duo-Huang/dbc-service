@@ -24,7 +24,7 @@ interface PinoHttpOptions {
             res: ServerResponse & { statusCode: number },
         ) => Record<string, unknown>;
     };
-    autoLogging?: boolean;
+    autoLogging?: boolean | { ignore?: (req: IncomingMessage) => boolean };
     customLogLevel?: (
         req: IncomingMessage,
         res: ServerResponse & { statusCode: number },
@@ -295,13 +295,48 @@ describe('PinoHttpConfig', () => {
     });
 
     describe('AutoLogging', () => {
-        it('should enable autoLogging', () => {
+        it('should enable autoLogging with ignore function', () => {
             mockConfigService.get.mockReturnValue(false);
 
             const config = createPinoHttpConfig(mockConfigService);
 
             const pinoHttp = config.pinoHttp as PinoHttpOptions;
-            expect(pinoHttp.autoLogging).toBe(true);
+            expect(pinoHttp.autoLogging).toBeDefined();
+            expect(typeof pinoHttp.autoLogging).toBe('object');
+            if (
+                typeof pinoHttp.autoLogging === 'object' &&
+                pinoHttp.autoLogging !== null
+            ) {
+                expect(pinoHttp.autoLogging.ignore).toBeDefined();
+                expect(typeof pinoHttp.autoLogging.ignore).toBe('function');
+            }
+        });
+
+        it('should ignore health check endpoints', () => {
+            mockConfigService.get.mockReturnValue(false);
+
+            const config = createPinoHttpConfig(mockConfigService);
+            const pinoHttp = config.pinoHttp as PinoHttpOptions;
+
+            if (
+                typeof pinoHttp.autoLogging === 'object' &&
+                pinoHttp.autoLogging !== null &&
+                pinoHttp.autoLogging.ignore
+            ) {
+                const mockReqWithHealth = {
+                    url: '/health',
+                } as IncomingMessage;
+                const mockReqWithoutHealth = {
+                    url: '/api/users',
+                } as IncomingMessage;
+
+                expect(pinoHttp.autoLogging.ignore(mockReqWithHealth)).toBe(
+                    true,
+                );
+                expect(pinoHttp.autoLogging.ignore(mockReqWithoutHealth)).toBe(
+                    false,
+                );
+            }
         });
     });
 

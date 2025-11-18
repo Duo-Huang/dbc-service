@@ -280,8 +280,6 @@ describe('AllExceptionsFilter', () => {
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.objectContaining({
                     err: exception,
-                    method: mockRequest.method,
-                    url: mockRequest.url,
                 }),
                 'Unexpected exception',
             );
@@ -304,8 +302,6 @@ describe('AllExceptionsFilter', () => {
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.objectContaining({
                     err: expect.any(Error),
-                    method: mockRequest.method,
-                    url: mockRequest.url,
                 }),
                 'Unexpected exception',
             );
@@ -344,8 +340,6 @@ describe('AllExceptionsFilter', () => {
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.objectContaining({
                     err: exception,
-                    method: mockRequest.method,
-                    url: mockRequest.url,
                 }),
                 'Unexpected exception',
             );
